@@ -1,6 +1,6 @@
 import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.1.1/+esm';
 
-import abi from './ressources/abi.js';
+import abi from './ressources/contract.js';
 import {
     CONTRACT_ADDRESS,
     GANACHE_RPC_URL,
