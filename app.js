@@ -34,38 +34,58 @@ async function drawGrid() {
   }
 }
 
+let lastAction = null;
+
 async function sendPixel(x, y, color) {
-  const accounts = await web3.eth.getAccounts();
-  document.getElementById("status").innerText = "Transaction en cours...";
+    const accounts = await web3.eth.getAccounts();
+    const account = accounts[0];
+    
+    // Sauvegarde état avant valid transaction
+    const pixelData = ctx.getImageData(x * pixelSize, y * pixelSize, 1, 1).data;
+    const oldColor = rgbToHex(pixelData[0], pixelData[1], pixelData[2]);
 
-  try {
-    // .send() pour modifier la blockchain
-    await contract.methods.setPixel(x, y, color).send({
-      from: accounts[0],
-      gas: 200000,
+    drawSinglePixel(x, y, color);
+
+    contract.methods.setPixel(x, y, color).send({ 
+        from: account,
+        gas: 200000
+    })
+    .on('transactionHash', (hash) => {
+        console.log("Transaction envoyée : " + hash);
+        document.getElementById('status').innerText = "Enregistrement sur la blockchain...";
+    })
+    .on('receipt', (receipt) => {
+        console.log("Transaction confirmée !");
+        document.getElementById('status').innerText = "Pixel enregistré !";
+    })
+    .on('error', (error) => {
+        // Rollback si échec transaction
+        console.error("Échec de la transaction, annulation...", error);
+        drawSinglePixel(x, y, oldColor);
+        document.getElementById('status').innerText = "Erreur : transaction échouée.";
     });
-
-    await drawGrid(); // Rafraîchir après le clic
-    document.getElementById("status").innerText = "Pixel posé !";
-  } catch (error) {
-    console.error("Erreur d'envoi:", error);
-    document.getElementById("status").innerText = "Erreur de transaction.";
-  }
 }
 
-// 3. Fonction d'initialisation principale
-async function init() {
-  try {
-    // Connexion
-    web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+// Optimisation single pixel
+function drawSinglePixel(x, y, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+}
 
-    // Vérifier si le contrat existe à cette adresse
-    const code = await web3.eth.getCode(contractAddress);
-    if (code === "0x" || code === "0x0") {
-      throw new Error(
-        "Contrat non trouvé à cette adresse. Vérifie l'adresse et Ganache.",
-      );
-    }
+function rgbToHex(r, g, b) {
+    if (r === 0 && g === 0 && b === 0) return "#ffffff"; // Par défaut blanc si vide
+    return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
+async function init() {
+    try {
+        // Connexion
+        web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
+        
+        const code = await web3.eth.getCode(contractAddress);
+        if (code === '0x' || code === '0x0') {
+            throw new Error("Contrat non trouvé à cette adresse. Vérifie l'adresse et Ganache.");
+        }
 
     contract = new web3.eth.Contract(abi, contractAddress);
     document.getElementById("status").innerText = "Connecté à Ganache !";
@@ -88,5 +108,4 @@ async function init() {
   }
 }
 
-// 4. Lancement
 init();
