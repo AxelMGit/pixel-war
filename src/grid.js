@@ -1,0 +1,30 @@
+import { GRID_SIZE } from './config.js';
+import { canvas, ctx, pixelSize } from './dom.js';
+
+function drawSinglePixel(id, color) {
+    const x = id % GRID_SIZE;
+    const y = Math.floor(id / GRID_SIZE);
+
+    ctx.fillStyle = color;
+    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+}
+
+function drawGrid(pixels) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    pixels.forEach((pixel, index) => {
+        if (pixel.color && pixel.color !== '') {
+            drawSinglePixel(index, pixel.color);
+        }
+    });
+}
+
+function getPixelId(x, y) {
+    return x + (y * GRID_SIZE);
+}
+
+export {
+    drawGrid,
+    drawSinglePixel,
+    getPixelId
+};
