@@ -1,0 +1,5 @@
+node_modules/
+blockchain_data/
+*.log
+dist/
+build/
