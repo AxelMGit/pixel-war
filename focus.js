@@ -18,8 +18,9 @@ canvas.addEventListener('mousemove', async (e) => {
             const pixel = await window.contract.methods.getPixel(x, y).call();
             document.getElementById('xValue').innerText = x;
             document.getElementById('yValue').innerText = y;
-            document.getElementById('topLockerValue').innerText = pixel.topLocker;
-            document.getElementById('highestAmountLockedValue').innerText = pixel.highestAmountLocked;
+            const isPixelSet = pixel.topLocker !== '0x0000000000000000000000000000000000000000' && pixel.highestAmountLocked !== '0';
+            document.getElementById('topLockerValue').innerText = isPixelSet ? pixel.topLocker : 'None';
+            document.getElementById('highestAmountLockedValue').innerText = isPixelSet ? pixel.highestAmountLocked : 'None';
         } catch (error) {
             console.error('Erreur lors de la récupération des données du pixel:', error);
         }
