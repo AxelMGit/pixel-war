@@ -7,6 +7,21 @@ import {
 } from './config.js';
 
 let gridRefreshIntervalId = null;
+const normalizeAddress = (address) => typeof address === 'string'
+    ? address.toLowerCase()
+    : '';
+const parseLockAmount = (amount) => {
+    if (typeof amount === 'bigint') {
+        return amount;
+    }
+    if (typeof amount === 'number') {
+        return BigInt(amount);
+    }
+    if (typeof amount === 'string' && amount.length > 0) {
+        return BigInt(amount);
+    }
+    throw new Error(`Montant de verrouillage invalide: ${amount}`);
+};
 
 async function createBlockchainClient() {
     let web3;
@@ -99,18 +114,34 @@ async function sendPixel(contract, web3, { x, y, color }) {
     console.log(`Contrat ciblé: ${contract.options.address}`);
 
     const pixel = await contract.methods.getPixel(x, y).call();
-    const pixelOwner = pixel.topLocker;
-    const currentLockAmount = BigInt(pixel.highestAmountLocked);
-    const isPixelOwner = typeof pixelOwner === 'string'
-        && pixelOwner.toLowerCase() === account.toLowerCase();
+    const isPixelOwner = normalizeAddress(pixel.topLocker) === normalizeAddress(account);
 
     if (!isPixelOwner) {
-        const nextLockAmount = currentLockAmount + 1n;
-        console.log(`Le compte ${account} ne possède pas ce pixel, tentative d'acquisition pour ${nextLockAmount} wei...`);
-        await contract.methods.ownPixel(x, y).send({
-            from: account,
-            value: nextLockAmount.toString()
-        });
+        let nextLockAmount = parseLockAmount(pixel.highestAmountLocked) + 1n;
+
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+            try {
+                console.log(`Le compte ${account} ne possède pas ce pixel, tentative d'acquisition pour ${nextLockAmount} wei...`);
+                await contract.methods.ownPixel(x, y).send({
+                    from: account,
+                    value: nextLockAmount.toString()
+                });
+                break;
+            } catch (error) {
+                if (attempt === 1) {
+                    throw error;
+                }
+
+                const latestPixel = await contract.methods.getPixel(x, y).call();
+                const latestOwner = normalizeAddress(latestPixel.topLocker);
+
+                if (latestOwner === normalizeAddress(account)) {
+                    break;
+                }
+
+                nextLockAmount = parseLockAmount(latestPixel.highestAmountLocked) + 1n;
+            }
+        }
     }
 
     await contract.methods.setPixel(x, y, color).send({
