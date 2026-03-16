@@ -90,14 +90,33 @@ async function sendPixel(contract, web3, { x, y, color }) {
     console.log(`Envoi de la transaction pour le pixel (${x}, ${y}) avec la couleur ${color}...`);
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
-    
-    console.log(`Adresse utilisée pour la transaction: ${account}`);
 
-    // 1. Let MetaMask estimate gas automatically
+    if (!account) {
+        throw new Error('Aucun compte disponible pour envoyer la transaction.');
+    }
+
+    console.log(`Adresse utilisée pour la transaction: ${account}`);
+    console.log(`Contrat ciblé: ${contract.options.address}`);
+
+    const pixel = await contract.methods.getPixel(x, y).call();
+    const pixelOwner = pixel.topLocker;
+    const currentLockAmount = BigInt(pixel.highestAmountLocked);
+    const isPixelOwner = typeof pixelOwner === 'string'
+        && pixelOwner.toLowerCase() === account.toLowerCase();
+
+    if (!isPixelOwner) {
+        const nextLockAmount = currentLockAmount + 1n;
+        console.log(`Le compte ${account} ne possède pas ce pixel, tentative d'acquisition pour ${nextLockAmount} wei...`);
+        await contract.methods.ownPixel(x, y).send({
+            from: account,
+            value: nextLockAmount.toString()
+        });
+    }
+
     await contract.methods.setPixel(x, y, color).send({
         from: account
     });
-    
+
     console.log("Transaction réussie !");
 }
 
