@@ -11,11 +11,9 @@ function setStatus(message) {
 }
 
 function getCanvasCoordinates(event) {
-    const rect = canvas.getBoundingClientRect();
-
     return {
-        x: Math.floor((event.clientX - rect.left) / pixelSize),
-        y: Math.floor((event.clientY - rect.top) / pixelSize)
+        x: Math.floor(event.offsetX / pixelSize),
+        y: Math.floor(event.offsetY / pixelSize)
     };
 }
 
