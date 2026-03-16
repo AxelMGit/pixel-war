@@ -157,7 +157,6 @@ async function sendPixel(x, y, color) {
     const oldColor = rgbToHex(pixelData[0], pixelData[1], pixelData[2]);
 
     drawSinglePixel(x, y, color);
-    console.log("UI MAJ");
 
     contract.methods.setPixel(x, y, color).send({ 
         from: account,
