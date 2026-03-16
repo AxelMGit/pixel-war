@@ -18,7 +18,9 @@ contract PixelGrid {
     event PixelChanged(uint256 id, address author, string color);
 
     function getPixel(uint256 _x, uint256 _y) public view returns (Pixel memory) {
-        return grid[_x + (_y * SIZE)];
+        require(_x < SIZE && _y < SIZE, "Hors limites");
+        uint256 id = _x + (_y * SIZE);
+        return grid[id];
     }
 
     function setPixel(uint256 _x, uint256 _y, string memory _color) public {
@@ -47,9 +49,7 @@ contract PixelGrid {
         // Mettre à jour le pixel avec le nouveau propriétaire et montant
         pixel.topLocker = msg.sender;
         pixel.highestAmountLocked = msg.value;
-        pixel.color = "red";
-
-        emit PixelChanged(id, msg.sender, "red");
+        emit PixelChanged(id, msg.sender, pixel.color);
     }
 
     function getFullGrid() public view returns (Pixel[] memory) {
