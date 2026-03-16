@@ -24,6 +24,10 @@ async function init() {
 
         await refreshGrid();
 
+        // Garde un rafraîchissement périodique actif pour synchroniser la grille
+        // même si les événements ne sont pas fournis de façon fiable par le provider.
+        startGridPolling(refreshGrid);
+
         subscribeToPixelChanges(contract, {
             onPixelChanged: ({ id, color }) => {
                 console.log(`Événement reçu: Pixel ${id} mis à jour avec ${color}`);

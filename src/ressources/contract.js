@@ -1,4 +1,4 @@
-export const contractAddress = "0x1293Bc2B07d3b87C536E28A4F97D7678D9AA5450";
+export const contractAddress = "0x2b61E578785E9fb99Fa29004f984E93401567F52";
 const abi = [
 	{
 		"anonymous": false,
@@ -27,20 +27,48 @@ const abi = [
 	},
 	{
 		"inputs": [],
-		"name": "SIZE",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
+		"name": "claimRefund",
+		"outputs": [],
+		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "claimRefund",
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_y",
+				"type": "uint256"
+			}
+		],
+		"name": "ownPixel",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_y",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_color",
+				"type": "string"
+			}
+		],
+		"name": "setPixel",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -148,24 +176,6 @@ const abi = [
 	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_x",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_y",
-				"type": "uint256"
-			}
-		],
-		"name": "ownPixel",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "address",
 				"name": "",
 				"type": "address"
@@ -183,26 +193,16 @@ const abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "SIZE",
+		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "_x",
+				"name": "",
 				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_y",
-				"type": "uint256"
-			},
-			{
-				"internalType": "string",
-				"name": "_color",
-				"type": "string"
 			}
 		],
-		"name": "setPixel",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	}
 ];

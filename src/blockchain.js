@@ -1,8 +1,7 @@
 import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.1.1/+esm';
 
-import abi from './ressources/contract.js';
+import abi, { contractAddress as abiContractAddress } from './ressources/contract.js';
 import {
-    CONTRACT_ADDRESS,
     GANACHE_RPC_URL,
     GRID_REFRESH_INTERVAL_MS
 } from './config.js';
@@ -22,8 +21,7 @@ async function createBlockchainClient() {
         web3 = new Web3(GANACHE_RPC_URL);
         connectionLabel = 'Connecté à Ganache !';
     }
-
-    const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
+    const contract = new web3.eth.Contract(abi, abiContractAddress);
 
     return {
         web3,
@@ -89,15 +87,18 @@ function subscribeToPixelChanges(contract, { onPixelChanged, onSubscriptionUnava
 }
 
 async function sendPixel(contract, web3, { x, y, color }) {
+    console.log(`Envoi de la transaction pour le pixel (${x}, ${y}) avec la couleur ${color}...`);
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
+    
+    console.log(`Adresse utilisée pour la transaction: ${account}`);
 
-    const estimatedGas = await contract.methods.setPixel(x, y, color).estimateGas({ from: account });
-
+    // 1. Let MetaMask estimate gas automatically
     await contract.methods.setPixel(x, y, color).send({
-        from: account,
-        gas: Math.floor(estimatedGas * 1.2)
+        from: account
     });
+    
+    console.log("Transaction réussie !");
 }
 
 export {
