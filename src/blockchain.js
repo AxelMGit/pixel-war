@@ -91,7 +91,6 @@ async function sendPixel(contract, web3, { x, y, color }) {
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
     
-    console.log(`Adresse utilisée pour la transaction: ${account}`);
 
     // 1. Let MetaMask estimate gas automatically
     await contract.methods.setPixel(x, y, color).send({
