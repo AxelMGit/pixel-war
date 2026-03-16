@@ -97,7 +97,6 @@ async function sendPixel(contract, web3, { x, y, color }) {
         from: account
     });
     
-    console.log("Transaction réussie !");
 }
 
 export {
