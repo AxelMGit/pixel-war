@@ -1,6 +1,5 @@
 import { abi, contractAddress } from "./contract/contract_interface.js";
 
-// 1. Déclaration des variables globales
 let web3;
 let contract;
 const size = 50;
@@ -8,14 +7,13 @@ const canvas = document.getElementById("pixelCanvas");
 const ctx = canvas.getContext("2d");
 const pixelSize = canvas.width / size;
 
-// ---------------------------------------
-
-// 2. Définition des fonctions (AVANT de les appeler)
-
+// Fonction pour dessiner toute la grille (utilisée au chargement initial)
 async function drawGrid() {
-  try {
-    console.log("Chargement de la grille...");
-    const pixels = await contract.methods.getFullGrid().call();
+    try {
+        console.log("Chargement de la grille...");
+        const pixels = await contract.methods.getFullGrid().call();
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Effacer le canvas avant de redessiner
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -34,8 +32,30 @@ async function drawGrid() {
   }
 }
 
-let lastAction = null;
+// Nouvelle fonction pour dessiner un seul pixel (beaucoup plus optimisé)
+function drawSinglePixel(id, color) {
+    const x = id % size;
+    const y = Math.floor(id / size);
+    ctx.fillStyle = color;
+    ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+}
 
+// Fonction pour écouter les événements de la blockchain
+function setupEventListeners() {
+    // Écoute l'événement "PixelChanged" défini dans votre contrat
+    contract.events.PixelChanged()
+        .on('data', (event) => {
+            const { id, color } = event.returnValues;
+            console.log(`Événement reçu: Pixel ${id} mis à jour avec ${color}`);
+            
+            // Met à jour uniquement le pixel concerné !
+            drawSinglePixel(id, color); 
+            statusEl.innerText = "Pixel posé !";
+        })
+        .on('error', console.error);
+}
+
+// Fonction d'envoi de la transaction
 async function sendPixel(x, y, color) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
@@ -82,9 +102,18 @@ function rgbToHex(r, g, b) {
 }
 
 async function init() {
-  try {
-    // Connexion
-    web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
+    try {
+        // Connexion Web3 : Priorité aux wallets intégrés (comme MetaMask)
+        if (window.ethereum) {
+            web3 = new Web3(window.ethereum);
+            await window.ethereum.request({ method: 'eth_requestAccounts' });
+            statusEl.innerText = "Connecté via MetaMask !";
+        } else {
+            // Fallback sur Ganache pour le dev local si MetaMask n'est pas là
+            console.warn("Wallet non détecté, tentative de connexion à Ganache (localhost).");
+            web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
+            statusEl.innerText = "Connecté à Ganache !";
+        }
 
     const code = await web3.eth.getCode(contractAddress);
     if (code === "0x" || code === "0x0") {
