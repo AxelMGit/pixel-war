@@ -1,4 +1,4 @@
-import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.1.1/+esm';
+import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.16.0/+esm'
 
 import abi, { contractAddress as abiContractAddress } from './ressources/contract.js';
 import {
