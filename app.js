@@ -6,8 +6,8 @@ const canvas = document.getElementById('pixelCanvas');
 const ctx = canvas.getContext('2d');
 const pixelSize = canvas.width / size;
 
-// --- À REMPLIR AVEC TES DONNÉES REMIX ---
-const contractAddress = '0xa491a06635DD88D2096aA62DBCBBfC290fAC445c'; // Ton adresse copiée de Remix
+
+const contractAddress = '0x1293Bc2B07d3b87C536E28A4F97D7678D9AA5450'; 
 const abi = [
 	{
 		"anonymous": false,
