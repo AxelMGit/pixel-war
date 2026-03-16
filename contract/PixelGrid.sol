@@ -49,7 +49,7 @@ contract PixelGrid {
         // Mettre à jour le pixel avec le nouveau propriétaire et montant
         pixel.topLocker = msg.sender;
         pixel.highestAmountLocked = msg.value;
-        emit PixelChanged(id, msg.sender, "#FFFFFF"); 
+        emit PixelChanged(id, msg.sender, pixel.color); 
     }
 
     function getFullGrid() public view returns (Pixel[] memory) {
