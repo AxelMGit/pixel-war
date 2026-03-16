@@ -87,7 +87,6 @@ function subscribeToPixelChanges(contract, { onPixelChanged, onSubscriptionUnava
 }
 
 async function sendPixel(contract, web3, { x, y, color }) {
-    console.log(`Envoi de la transaction pour le pixel (${x}, ${y}) avec la couleur ${color}...`);
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
     
