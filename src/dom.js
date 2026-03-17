@@ -162,4 +162,5 @@ export {
   getSelectedColor,
   showOwnPixelModal,
   showBidPixelModal,
+  removeDomModal,
 };

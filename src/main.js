@@ -108,6 +108,33 @@ async function init() {
         const account = accounts[0];
         const pixel = await getPixel(contract, x, y);
 
+        // If the UI provided an amount, validate it here (numeric and > current bid when needed)
+        if (amount) {
+          const cleaned = String(amount).replace(',', '.');
+          const entered = parseFloat(cleaned);
+          if (!Number.isFinite(entered) || entered <= 0) {
+            setStatus("Montant invalide fourni par l'UI.");
+            return;
+          }
+          if (
+            pixel.topLocker &&
+            pixel.topLocker !== '0x0000000000000000000000000000000000000000'
+          ) {
+            const currentBidStr = web3.utils.fromWei(
+              pixel.highestAmountLocked,
+              'ether'
+            );
+            const currentBid =
+              parseFloat(String(currentBidStr).replace(',', '.')) || 0;
+            if (entered <= currentBid) {
+              setStatus(
+                `Montant trop faible — il faut surenchérir (actuel: ${currentBid} ETH).`
+              );
+              return;
+            }
+          }
+        }
+
         if (pixel.topLocker === '0x0000000000000000000000000000000000000000') {
           const chosenAmount = amount || (await showOwnPixelModal());
           setStatus(
