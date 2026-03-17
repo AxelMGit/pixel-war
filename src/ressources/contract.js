@@ -1,4 +1,4 @@
-export const contractAddress = '0x7188DFDb77819F20a9e479eA0445169388EcBdf1';
+export const contractAddress = '0xD8661aB84A2fE7D151a0b254148a1DBa58Bd3770';
 const abi = [
   {
     inputs: [],
@@ -104,6 +104,24 @@ const abi = [
     ],
     name: 'PixelOwned',
     type: 'event',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256[]',
+        name: '_xList',
+        type: 'uint256[]',
+      },
+      {
+        internalType: 'uint256[]',
+        name: '_yList',
+        type: 'uint256[]',
+      },
+    ],
+    name: 'ownPixels',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
   },
   {
     inputs: [

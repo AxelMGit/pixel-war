@@ -173,6 +173,18 @@ async function ownPixel(contract, web3, { x, y, amount }) {
   });
 }
 
+async function ownPixels(contract, web3, { xList, yList, amount }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.ownPixels(xList, yList).send({
+    from: account,
+    value: web3.utils.toWei(amount, 'ether'),
+    nonce,
+  });
+}
+
 async function giveUpPixel(contract, web3, { x, y }) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
@@ -216,4 +228,5 @@ export {
   getPendingRefund,
   getPseudoCached,
   setPseudo,
+  ownPixels,
 };

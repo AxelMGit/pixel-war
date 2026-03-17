@@ -70,6 +70,50 @@ contract PixelGrid {
         emit PixelChanged(id, msg.sender, pixel.color, msg.sender, msg.value);
     }
 
+    function ownPixels(uint256[] calldata _xList, uint256[] calldata _yList) public payable {
+        // 1. Ensure the arrays are the same length and not empty
+        require(_xList.length == _yList.length, "Listes de tailles differentes");
+        require(_xList.length > 0, "Liste vide");
+
+        uint256 numberOfPixels = _xList.length;
+        
+        // 2. Divide the total ETH sent by the number of pixels
+        uint256 amountPerPixel = msg.value / numberOfPixels;
+
+        // 3. Loop through each pixel in the list
+        for (uint256 i = 0; i < numberOfPixels; i++) {
+            uint256 _x = _xList[i];
+            uint256 _y = _yList[i];
+
+            require(_x < SIZE && _y < SIZE, "Hors limites");
+            
+            uint256 id = _x + (_y * SIZE);
+            Pixel storage pixel = grid[id];
+
+            // Ensure the divided amount is higher than the current locked amount for THIS specific pixel
+            require(amountPerPixel > pixel.highestAmountLocked, "Montant insuffisant pour un des pixels");
+
+            // Refund the previous owner
+            if (pixel.highestAmountLocked > 0) {
+                pendingRefunds[pixel.topLocker] += pixel.highestAmountLocked;
+            }
+
+            // Assign to the new owner
+            pixel.topLocker = msg.sender;
+            pixel.highestAmountLocked = amountPerPixel;
+            pixel.color = "#F527C8";
+            emit PixelChanged(id, msg.sender, pixel.color, msg.sender, amountPerPixel);
+        }
+    }
+
+    function getFullGrid() public view returns (Pixel[] memory) {
+        Pixel[] memory allPixels = new Pixel[](SIZE * SIZE);
+        for (uint256 i = 0; i < SIZE * SIZE; i++) {
+            allPixels[i] = grid[i];
+        }
+        return allPixels;
+    }
+
     function claimRefund() public {
         uint256 refundAmount = pendingRefunds[msg.sender];
         require(refundAmount > 0, "You have no funds to refund");
