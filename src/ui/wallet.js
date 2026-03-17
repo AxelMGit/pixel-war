@@ -10,7 +10,20 @@ export async function connectWallet() {
       });
       const web3 = new Web3(window.ethereum);
       const accounts = await web3.eth.getAccounts();
-      return { web3, account: accounts[0] };
+      const account = accounts[0];
+
+      if (account) {
+        const wa = document.getElementById('walletAddress');
+        const ns = document.getElementById('networkStatus');
+        if (wa) wa.textContent = shorten(account);
+        if (ns) ns.textContent = 'Connecté';
+        showToast('Wallet connecté');
+        window.dispatchEvent(
+          new CustomEvent('ui:walletConnected', { detail: { address: account } })
+        );
+      }
+
+      return { web3, account };
     } catch (err) {
       showToast('Connexion refusée');
       throw new Error('Connection refused');
@@ -21,20 +34,4 @@ export async function connectWallet() {
   }
 }
 
-export async function connectWalletUI() {
-  try {
-    const { account } = await connectWallet();
-    const wa = document.getElementById('walletAddress');
-    const ns = document.getElementById('networkStatus');
-    if (wa) wa.textContent = shorten(account);
-    if (ns) ns.textContent = 'Connecté';
-    showToast('Wallet connecté');
-    window.dispatchEvent(
-      new CustomEvent('ui:walletConnected', { detail: { address: account } })
-    );
-  } catch (err) {
-    // errors are already displayed in connectWallet
-  }
-}
-
-export default { connectWallet, connectWalletUI };
+export default { connectWallet };
