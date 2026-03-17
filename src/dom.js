@@ -53,43 +53,43 @@ function showOwnPixelModal() {
       }
     };
 
-        closeButton.onclick = close;
-        ownPixelButton.onclick = own;
-    });
+    closeButton.onclick = close;
+    ownPixelButton.onclick = own;
+  });
 }
 
 function showBidPixelModal(currentBid) {
-    return new Promise((resolve, reject) => {
-        currentBidEl.innerText = currentBid;
-        bidPixelModal.style.display = 'flex';
+  return new Promise((resolve, reject) => {
+    currentBidEl.innerText = currentBid;
+    bidPixelModal.style.display = 'flex';
 
-        const close = () => {
-            bidPixelModal.style.display = 'none';
-            reject(new Error('Transaction annulée.'));
-        };
+    const close = () => {
+      bidPixelModal.style.display = 'none';
+      reject(new Error('Transaction annulée.'));
+    };
 
-        const bid = () => {
-            const amount = bidAmountInput.value;
-            if (amount) {
-                bidPixelModal.style.display = 'none';
-                resolve(amount);
-            } else {
-                alert('Veuillez entrer un montant.');
-            }
-        };
+    const bid = () => {
+      const amount = bidAmountInput.value;
+      if (amount) {
+        bidPixelModal.style.display = 'none';
+        resolve(amount);
+      } else {
+        alert('Veuillez entrer un montant.');
+      }
+    };
 
-        bidCloseButton.onclick = close;
-        bidPixelButton.onclick = bid;
-    });
+    bidCloseButton.onclick = close;
+    bidPixelButton.onclick = bid;
+  });
 }
 
 export {
-    canvas,
-    ctx,
-    pixelSize,
-    setStatus,
-    getCanvasCoordinates,
-    getSelectedColor,
-    showOwnPixelModal,
-    showBidPixelModal
+  canvas,
+  ctx,
+  pixelSize,
+  setStatus,
+  getCanvasCoordinates,
+  getSelectedColor,
+  showOwnPixelModal,
+  showBidPixelModal,
 };
