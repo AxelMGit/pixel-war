@@ -1,11 +1,9 @@
-/* eslint-disable-next-line node/no-missing-import */
-import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.1.1/+esm';
+import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.16.0/+esm'
 
-import abi from './ressources/contract.js';
+import abi, { contractAddress as abiContractAddress } from './ressources/contract.js';
 import {
-  CONTRACT_ADDRESS,
-  GANACHE_RPC_URL,
-  GRID_REFRESH_INTERVAL_MS,
+    GANACHE_RPC_URL,
+    GRID_REFRESH_INTERVAL_MS
 } from './config.js';
 
 let gridRefreshIntervalId = null;
@@ -14,19 +12,16 @@ async function createBlockchainClient() {
   let web3;
   let connectionLabel;
 
-  if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    connectionLabel = 'Connecté via MetaMask !';
-  } else {
-    console.warn(
-      'Wallet non détecté, tentative de connexion à Ganache (localhost).'
-    );
-    web3 = new Web3(GANACHE_RPC_URL);
-    connectionLabel = 'Connecté à Ganache !';
-  }
-
-  const contract = new web3.eth.Contract(abi, CONTRACT_ADDRESS);
+    if (window.ethereum) {
+        web3 = new Web3(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        connectionLabel = 'Connecté via MetaMask !';
+    } else {
+        console.warn('Wallet non détecté, tentative de connexion à Ganache (localhost).');
+        web3 = new Web3(GANACHE_RPC_URL);
+        connectionLabel = 'Connecté à Ganache !';
+    }
+    const contract = new web3.eth.Contract(abi, abiContractAddress);
 
   return {
     web3,
@@ -104,28 +99,14 @@ function subscribeToPixelChanges(
 }
 
 async function sendPixel(contract, web3, { x, y, color }) {
-  const accounts = await web3.eth.getAccounts();
-  const account = accounts[0];
+    const accounts = await web3.eth.getAccounts();
+    const account = accounts[0];
+    
 
-  const estimatedGas = await contract.methods
-    .setPixel(x, y, color)
-    .estimateGas({ from: account });
-
-  // `estimatedGas` can be a BigInt, string, or BN-like object depending on the
-  // web3/provider implementation. Convert to Number for arithmetic.
-  const estimatedGasNumber =
-    typeof estimatedGas === 'bigint'
-      ? Number(estimatedGas)
-      : Number(
-          estimatedGas && estimatedGas.toString && estimatedGas.toString()
-        );
-
-  const gasToUse = Math.floor(estimatedGasNumber * 1.2);
-
-  await contract.methods.setPixel(x, y, color).send({
-    from: account,
-    gas: gasToUse,
-  });
+    await contract.methods.setPixel(x, y, color).send({
+        from: account
+    });
+    
 }
 
 export {
