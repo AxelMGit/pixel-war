@@ -7,6 +7,8 @@ import abi, {
 import { GANACHE_RPC_URL, GRID_REFRESH_INTERVAL_MS } from './config.js';
 
 let gridRefreshIntervalId = null;
+// Cache pour éviter d'appeler getPseudo trop souvent
+const pseudoCache = {};
 
 async function createBlockchainClient() {
   let web3;
@@ -115,6 +117,34 @@ async function getPixel(contract, x, y) {
   return await contract.methods.getPixel(x, y).call();
 }
 
+async function getPseudoCached(contract, address) {
+  if (!address) return '';
+  if (pseudoCache[address]) return pseudoCache[address];
+  try {
+    const pseudo = await contract.methods.getPseudo(address).call();
+    // stocker au cache même si vide pour éviter re-appels
+    pseudoCache[address] = pseudo || '';
+    return pseudoCache[address];
+  } catch (error) {
+    console.error('Erreur getPseudoCached:', error);
+    return '';
+  }
+}
+
+async function setPseudo(contract, web3, pseudo) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.setPseudo(pseudo).send({
+    from: account,
+    nonce,
+  });
+
+  // Mettre à jour le cache local
+  pseudoCache[account] = pseudo;
+}
+
 async function ownPixel(contract, web3, { x, y, amount }) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
@@ -128,35 +158,37 @@ async function ownPixel(contract, web3, { x, y, amount }) {
 }
 
 async function giveUpPixel(contract, web3, { x, y }) {
-    const accounts = await web3.eth.getAccounts();
-    const account = accounts[0];
-    const nonce = await web3.eth.getTransactionCount(account, 'pending');
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
-    await contract.methods.giveUpPixel(x, y).send({
-        from: account,
-        nonce
-    });
+  await contract.methods.giveUpPixel(x, y).send({
+    from: account,
+    nonce,
+  });
 }
 
 async function claimRefund(contract, web3) {
-    const accounts = await web3.eth.getAccounts();
-    const account = accounts[0];
-    const nonce = await web3.eth.getTransactionCount(account, 'pending');
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
-    await contract.methods.claimRefund().send({
-        from: account,
-        nonce
-    });
+  await contract.methods.claimRefund().send({
+    from: account,
+    nonce,
+  });
 }
 
 export {
-    createBlockchainClient,
-    loadGrid,
-    sendPixel,
-    startGridPolling,
-    subscribeToPixelChanges,
-    getPixel,
-    ownPixel,
-    giveUpPixel,
-    claimRefund
+  createBlockchainClient,
+  loadGrid,
+  sendPixel,
+  startGridPolling,
+  subscribeToPixelChanges,
+  getPixel,
+  ownPixel,
+  giveUpPixel,
+  claimRefund,
+  getPseudoCached,
+  setPseudo,
 };

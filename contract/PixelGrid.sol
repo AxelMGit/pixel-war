@@ -6,6 +6,8 @@ contract PixelGrid {
 
     mapping(address => uint256) public pendingRefunds;
 
+    mapping(address => string) public pseudos;
+
     struct Pixel {
         address topLocker;
         uint256 highestAmountLocked;
@@ -82,5 +84,13 @@ contract PixelGrid {
 
         (bool success, ) = msg.sender.call{value: refundAmount}("");
         require(success, "ETH transfer failed");
+    }
+
+    function setPseudo(string memory _pseudo) public {
+        pseudos[msg.sender] = _pseudo;
+    }
+
+    function getPseudo(address _user) public view returns (string memory) {
+        return pseudos[_user];
     }
 }

@@ -1,12 +1,14 @@
 import {
-    createBlockchainClient,
-    loadGrid,
-    sendPixel,
-    startGridPolling,
-    subscribeToPixelChanges,
-    getPixel,
-    ownPixel,
-    giveUpPixel
+  createBlockchainClient,
+  loadGrid,
+  sendPixel,
+  startGridPolling,
+  subscribeToPixelChanges,
+  getPixel,
+  ownPixel,
+  giveUpPixel,
+  getPseudoCached,
+  setPseudo,
 } from './blockchain.js';
 import {
   canvas,
@@ -22,6 +24,35 @@ async function init() {
   try {
     const { web3, contract, connectionLabel } = await createBlockchainClient();
     setStatus(connectionLabel);
+
+    // Initialiser le pseudo de l'utilisateur et le contrôle UI
+    try {
+      const accounts = await web3.eth.getAccounts();
+      const account = accounts[0];
+      const pseudoInput = document.getElementById('pseudoInput');
+      const saveBtn = document.getElementById('savePseudoButton');
+
+      if (account && pseudoInput) {
+        const myPseudo = await getPseudoCached(contract, account);
+        pseudoInput.value = myPseudo || '';
+      }
+
+      if (saveBtn && pseudoInput) {
+        saveBtn.addEventListener('click', async () => {
+          const newPseudo = pseudoInput.value || '';
+          setStatus('Enregistrement du pseudo...');
+          try {
+            await setPseudo(contract, web3, newPseudo);
+            setStatus('Pseudo enregistré.');
+          } catch (err) {
+            console.error('Erreur setPseudo:', err);
+            setStatus("Erreur lors de l'enregistrement du pseudo.");
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Impossible d'initialiser le pseudo:", err);
+    }
 
     const refreshGrid = async () => {
       try {
@@ -90,33 +121,34 @@ async function init() {
       }
     });
     canvas.addEventListener('contextmenu', async (event) => {
-        event.preventDefault(); // Empêcher le menu contextuel par défaut
-        const { x, y } = getCanvasCoordinates(event);
+      event.preventDefault(); // Empêcher le menu contextuel par défaut
+      const { x, y } = getCanvasCoordinates(event);
 
-        setStatus('Vérification du propriétaire du pixel...');
+      setStatus('Vérification du propriétaire du pixel...');
 
-        try {
-            const accounts = await web3.eth.getAccounts();
-            const account = accounts[0];
-            const pixel = await getPixel(contract, x, y);
+      try {
+        const accounts = await web3.eth.getAccounts();
+        const account = accounts[0];
+        const pixel = await getPixel(contract, x, y);
 
-            if (pixel.topLocker.toLowerCase() === account.toLowerCase()) {
-                setStatus('Transaction en cours pour vendre le pixel. Veuillez confirmer dans votre wallet...');
-                await giveUpPixel(contract, web3, { x, y });
-                setStatus('Transaction validée ! Vous avez vendu ce pixel.');
-            } else {
-                setStatus('Vous ne pouvez vendre que vos propres pixels.');
-            }
-        } catch (error) {
-            console.error("Erreur:", error);
-            setStatus(`Erreur: ${error.message}`);
+        if (pixel.topLocker.toLowerCase() === account.toLowerCase()) {
+          setStatus(
+            'Transaction en cours pour vendre le pixel. Veuillez confirmer dans votre wallet...'
+          );
+          await giveUpPixel(contract, web3, { x, y });
+          setStatus('Transaction validée ! Vous avez vendu ce pixel.');
+        } else {
+          setStatus('Vous ne pouvez vendre que vos propres pixels.');
         }
-    });
-
-    } catch (error) {
-        console.error("Erreur d'initialisation:", error);
+      } catch (error) {
+        console.error('Erreur:', error);
         setStatus(`Erreur: ${error.message}`);
-    }
+      }
+    });
+  } catch (error) {
+    console.error("Erreur d'initialisation:", error);
+    setStatus(`Erreur: ${error.message}`);
+  }
 }
 
 init();
