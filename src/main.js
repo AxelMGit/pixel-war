@@ -192,7 +192,6 @@ async function init() {
       }
     });
 
-    // New flow: UI requests a return; verify ownership and ask UI to confirm or warn
     window.addEventListener('ui:returnRequest', async (ev) => {
       const { x, y } = ev.detail || {};
       try {
