@@ -22,9 +22,7 @@ canvas.addEventListener('mousemove', async (e) => {
       if (isPixelSet) {
         const pseudo = await getPseudoCached(contract, pixel.topLocker);
         document.getElementById('topLockerValue').innerText =
-          pseudo && pseudo.length > 0
-            ? pseudo
-            : pixel.topLocker;
+          pseudo && pseudo.length > 0 ? pseudo : pixel.topLocker;
       } else {
         document.getElementById('topLockerValue').innerText = 'N/A';
       }

@@ -15,6 +15,7 @@ import {
   getSelectedColor,
   setStatus,
   showOwnPixelModal,
+  showBidPixelModal,
 } from './dom.js';
 import { drawGrid, drawSinglePixel, getPixelId } from './grid.js';
 
@@ -80,14 +81,13 @@ async function init() {
       const { x, y } = getCanvasCoordinates(event);
       const color = getSelectedColor();
 
-      setStatus(
-        'Transaction en cours. Veuillez confirmer dans votre wallet...'
-      );
-
       setStatus('Vérification du propriétaire du pixel...');
 
       try {
+        const accounts = await web3.eth.getAccounts();
+        const account = accounts[0];
         const pixel = await getPixel(contract, x, y);
+
         if (pixel.topLocker === '0x0000000000000000000000000000000000000000') {
           const amount = await showOwnPixelModal();
           setStatus(
@@ -95,13 +95,24 @@ async function init() {
           );
           await ownPixel(contract, web3, { x, y, amount });
           setStatus('Transaction validée ! Vous possédez maintenant ce pixel.');
-        } else {
+        } else if (pixel.topLocker.toLowerCase() === account.toLowerCase()) {
           setStatus(
             'Transaction en cours. Veuillez confirmer dans votre wallet...'
           );
           await sendPixel(contract, web3, { x, y, color });
           drawSinglePixel(getPixelId(x, y), color);
           setStatus('Transaction validée !');
+        } else {
+          const currentBid = web3.utils.fromWei(
+            pixel.highestAmountLocked,
+            'ether'
+          );
+          const amount = await showBidPixelModal(currentBid);
+          setStatus(
+            'Transaction en cours. Veuillez confirmer dans votre wallet...'
+          );
+          await ownPixel(contract, web3, { x, y, amount });
+          setStatus('Surenchère validée !');
         }
       } catch (error) {
         console.error('Erreur:', error);

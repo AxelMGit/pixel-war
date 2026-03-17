@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 contract PixelGrid {
     uint256 public constant SIZE = 50;
 
-    // Track ETH owed to people who were outbid
     mapping(address => uint256) public pendingRefunds;
 
     mapping(address => string) public pseudos;
@@ -35,23 +34,37 @@ contract PixelGrid {
         emit PixelChanged(id, msg.sender, _color);
     }
 
+    function giveUpPixel(uint256 _x, uint256 _y) public {
+        require(_x < SIZE && _y < SIZE, "Hors limites");
+        uint256 id = _x + (_y * SIZE);
+        Pixel storage pixel = grid[id];
+        require(pixel.topLocker == msg.sender, "Vous devez etre le proprietaire du pixel pour le liberer");
+
+        if (pixel.highestAmountLocked > 0) {
+            pendingRefunds[msg.sender] += pixel.highestAmountLocked;
+        }
+
+        pixel.topLocker = address(0);
+        pixel.highestAmountLocked = 0;
+        pixel.color = "#FFFFFF"; 
+
+        emit PixelChanged(id, msg.sender, pixel.color); 
+    }
+
     function ownPixel(uint256 _x, uint256 _y) public payable {
         require(_x < SIZE && _y < SIZE, "Hors limites");
         uint256 id = _x + (_y * SIZE);
         Pixel storage pixel = grid[id];
 
-        // Si le pixel est déjà possédé, le nouveau montant doit être plus élevé
         require(msg.value > pixel.highestAmountLocked, "Doit etre plus eleve que le montant actuel");
 
-        // Si quelqu'un était déjà le propriétaire, ajouter son montant à ses remboursements
         if (pixel.highestAmountLocked > 0) {
             pendingRefunds[pixel.topLocker] += pixel.highestAmountLocked;
         }
 
-        // Mettre à jour le pixel avec le nouveau propriétaire et montant
         pixel.topLocker = msg.sender;
         pixel.highestAmountLocked = msg.value;
-        pixel.color = "F527C8";
+        pixel.color = "#F527C8";
         emit PixelChanged(id, msg.sender, pixel.color); 
     }
 
@@ -63,15 +76,12 @@ contract PixelGrid {
         return allPixels;
     }
 
-    // 2. Function for outbid users to get their ETH back (The "Pull" pattern)
     function claimRefund() public {
         uint256 refundAmount = pendingRefunds[msg.sender];
         require(refundAmount > 0, "You have no funds to refund");
 
-        // ALWAYS zero out the balance BEFORE sending the ETH (prevents reentrancy)
         pendingRefunds[msg.sender] = 0;
 
-        // Send the ETH
         (bool success, ) = msg.sender.call{value: refundAmount}("");
         require(success, "ETH transfer failed");
     }
