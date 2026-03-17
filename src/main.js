@@ -9,6 +9,7 @@ import {
   giveUpPixel,
   getPseudoCached,
   setPseudo,
+  claimRefund,
 } from './blockchain.js';
 import {
   canvas,
@@ -47,6 +48,20 @@ async function init() {
           } catch (err) {
             console.error('Erreur setPseudo:', err);
             setStatus("Erreur lors de l'enregistrement du pseudo.");
+          }
+        });
+      }
+
+      const claimBtn = document.getElementById('claimRefundButton');
+      if (claimBtn) {
+        claimBtn.addEventListener('click', async () => {
+          setStatus('Réclamation de remboursement en cours...');
+          try {
+            await claimRefund(contract, web3);
+            setStatus('Remboursement réclamé avec succès.');
+          } catch (err) {
+            console.error('Erreur claimRefund:', err);
+            setStatus('Erreur lors de la réclamation du remboursement.');
           }
         });
       }
