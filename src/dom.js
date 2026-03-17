@@ -117,7 +117,6 @@ function showOwnPixelModal() {
 
 function showBidPixelModal(currentBid) {
   return new Promise((resolve, reject) => {
-    // If modal exists, use it. Otherwise use window.prompt fallback.
     if (currentBidEl) currentBidEl.innerText = currentBid;
 
     if (bidPixelModal && bidAmountInput) {
