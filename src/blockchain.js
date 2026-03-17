@@ -10,27 +10,24 @@ let gridRefreshIntervalId = null;
 // Cache pour éviter d'appeler getPseudo trop souvent
 const pseudoCache = {};
 
-async function createBlockchainClient() {
-  let web3;
-  let connectionLabel;
+import { connectWallet } from './ui/wallet.js';
 
-  if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    connectionLabel = 'Connecté via MetaMask !';
-  } else {
-    console.warn(
-      'Wallet non détecté, tentative de connexion à Ganache (localhost).'
-    );
-    web3 = new Web3(GANACHE_RPC_URL);
-    connectionLabel = 'Connecté à Ganache !';
-  }
+async function createBlockchainClient() {
+  const { web3, account } = await connectWallet();
   const contract = new web3.eth.Contract(abi, abiContractAddress);
+
+  if (account) {
+    window.dispatchEvent(
+      new CustomEvent('ui:walletConnected', {
+        detail: { address: account },
+      })
+    );
+  }
 
   return {
     web3,
     contract,
-    connectionLabel,
+    connectionLabel: 'MetaMask',
   };
 }
 
