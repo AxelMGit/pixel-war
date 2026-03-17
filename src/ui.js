@@ -1,4 +1,6 @@
 import { GRID_SIZE } from './config.js';
+import { getCanvasCoordinates, removeDomModal } from './dom.js';
+import { syncColor } from './ui/color.js';
 
 const els = {};
 let currentColor = '#7C3AED';
@@ -50,8 +52,7 @@ function bind() {
     els.colorPicker.addEventListener('input', (e) => {
       currentColor = e.target.value;
       addRecentColor(currentColor);
-      if (els.hexInput) els.hexInput.value = currentColor;
-      if (els.colorPickerLarge) els.colorPickerLarge.value = currentColor;
+      syncColor(currentColor);
     });
   }
 
@@ -59,8 +60,7 @@ function bind() {
     els.colorPickerLarge.addEventListener('input', (e) => {
       currentColor = e.target.value;
       addRecentColor(currentColor);
-      if (els.hexInput) els.hexInput.value = currentColor;
-      if (els.colorPicker) els.colorPicker.value = currentColor;
+      syncColor(currentColor);
     });
   }
 
@@ -69,9 +69,8 @@ function bind() {
       const v = els.hexInput.value.trim();
       if (/^#([0-9A-Fa-f]{6})$/.test(v)) {
         currentColor = v;
-        if (els.colorPicker) els.colorPicker.value = v;
-        if (els.colorPickerLarge) els.colorPickerLarge.value = v;
         addRecentColor(v);
+        syncColor(v);
       } else {
         showToast('Format hex invalide (#RRGGBB)');
       }
@@ -81,9 +80,8 @@ function bind() {
   if (els.eraserBtn) {
     els.eraserBtn.addEventListener('click', () => {
       currentColor = '#ffffff';
-      if (els.colorPicker) els.colorPicker.value = '#ffffff';
-      if (els.colorPickerLarge) els.colorPickerLarge.value = '#ffffff';
       addRecentColor('#ffffff');
+      syncColor('#ffffff');
     });
   }
 
@@ -99,7 +97,20 @@ function bind() {
     });
 
   if (els.canvas) {
-    els.canvas.addEventListener('mousemove', onCanvasMove);
+    els.canvas.addEventListener('mousemove', (e) => {
+      const { x: cellX, y: cellY } = getCanvasCoordinates(e);
+      lastCell = { x: cellX, y: cellY };
+      if (els.cellTooltip) {
+        els.cellTooltip.style.display = 'block';
+        els.cellTooltip.textContent = `x: ${cellX} y: ${cellY}`;
+        const rect = els.canvas.getBoundingClientRect();
+        els.cellTooltip.style.left = `${e.clientX - rect.left + 12}px`;
+        els.cellTooltip.style.top = `${e.clientY - rect.top + 12}px`;
+      }
+      window.dispatchEvent(
+        new CustomEvent('ui:cellHover', { detail: { x: cellX, y: cellY } })
+      );
+    });
     els.canvas.addEventListener('mouseleave', () => {
       if (els.cellTooltip) els.cellTooltip.style.display = 'none';
       lastCell = { x: -1, y: -1 };
@@ -187,10 +198,7 @@ function onCanvasRightClick(e) {
   );
 }
 
-function removeModal(backdrop) {
-  if (backdrop && backdrop.parentNode)
-    backdrop.parentNode.removeChild(backdrop);
-}
+// use removeDomModal from src/dom.js
 
 function showBuyPopup(x, y, color) {
   const root = document.getElementById('modalRoot') || document.body;
@@ -224,7 +232,7 @@ function showBuyPopup(x, y, color) {
     const btnCancel = card.querySelector('#modalCancel');
     const btnConfirm = card.querySelector('#modalConfirm');
 
-    btnCancel.addEventListener('click', () => removeModal(backdrop));
+    btnCancel.addEventListener('click', () => removeDomModal(backdrop));
     btnConfirm.addEventListener('click', () => {
       const newColor = colorInput.value || color;
       window.dispatchEvent(
@@ -232,7 +240,7 @@ function showBuyPopup(x, y, color) {
           detail: { x, y, color: newColor, amount: null },
         })
       );
-      removeModal(backdrop);
+      removeDomModal(backdrop);
       showToast('Changement de couleur soumis', 2500);
     });
     return;
@@ -259,7 +267,7 @@ function showBuyPopup(x, y, color) {
   const btnCancel = card.querySelector('#modalCancel');
   const btnConfirm = card.querySelector('#modalConfirm');
 
-  btnCancel.addEventListener('click', () => removeModal(backdrop));
+  btnCancel.addEventListener('click', () => removeDomModal(backdrop));
   btnConfirm.addEventListener('click', () => {
     const raw = (amountInput.value || '').trim();
     const cleaned = raw.replace(',', '.');
@@ -303,7 +311,7 @@ function showBuyPopup(x, y, color) {
     window.dispatchEvent(
       new CustomEvent('ui:buyPixel', { detail: { x, y, color, amount } })
     );
-    removeModal(backdrop);
+    removeDomModal(backdrop);
     showToast('Transaction soumise', 2500);
   });
 }
@@ -330,13 +338,13 @@ function showEditPseudoModal() {
   const btnCancel = card.querySelector('#modalCancel');
   const btnSave = card.querySelector('#modalSave');
 
-  btnCancel.addEventListener('click', () => removeModal(backdrop));
+  btnCancel.addEventListener('click', () => removeDomModal(backdrop));
   btnSave.addEventListener('click', () => {
     const newPseudo = input.value.trim();
     window.dispatchEvent(
       new CustomEvent('ui:setPseudo', { detail: { pseudo: newPseudo } })
     );
-    removeModal(backdrop);
+    removeDomModal(backdrop);
   });
 }
 
@@ -363,12 +371,12 @@ function showReturnPopup(x, y) {
   const btnCancel = card.querySelector('#modalCancel');
   const btnConfirm = card.querySelector('#modalConfirm');
 
-  btnCancel.addEventListener('click', () => removeModal(backdrop));
+  btnCancel.addEventListener('click', () => removeDomModal(backdrop));
   btnConfirm.addEventListener('click', () => {
     window.dispatchEvent(
       new CustomEvent('ui:returnPixel', { detail: { x, y } })
     );
-    removeModal(backdrop);
+    removeDomModal(backdrop);
     showToast('Demande de retour envoyée', 2500);
   });
 }
@@ -388,9 +396,7 @@ function renderRecentColors() {
     b.title = c;
     b.addEventListener('click', () => {
       currentColor = c;
-      if (els.colorPicker) els.colorPicker.value = c;
-      if (els.colorPickerLarge) els.colorPickerLarge.value = c;
-      if (els.hexInput) els.hexInput.value = c;
+      syncColor(c);
     });
     els.recentColors.appendChild(b);
   });
@@ -513,5 +519,5 @@ window.addEventListener('ui:notOwner', (ev) => {
   backdrop.appendChild(card);
   root.appendChild(backdrop);
   const btnOk = card.querySelector('#modalOk');
-  btnOk.addEventListener('click', () => removeModal(backdrop));
+  btnOk.addEventListener('click', () => removeDomModal(backdrop));
 });
