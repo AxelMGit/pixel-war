@@ -47,21 +47,6 @@ async function init() {
         'Transaction en cours. Veuillez confirmer dans votre wallet...'
       );
 
-<<<<<<< HEAD
-      try {
-        await sendPixel(contract, web3, { x, y, color });
-        drawSinglePixel(getPixelId(x, y), color);
-        setStatus('Transaction validée !');
-      } catch (error) {
-        console.error("Erreur d'envoi:", error);
-        setStatus('Erreur ou transaction annulée.');
-      }
-    });
-  } catch (error) {
-    console.error("Erreur d'initialisation:", error);
-    setStatus(`Erreur: ${error.message}`);
-  }
-=======
             setStatus('Vérification du propriétaire du pixel...');
 
             try {
@@ -86,7 +71,6 @@ async function init() {
         console.error("Erreur d'initialisation:", error);
         setStatus(`Erreur: ${error.message}`);
     }
->>>>>>> 3d91c6a (Buying pixel)
 }
 
 init();
