@@ -1,30 +1,5 @@
-export const contractAddress = '0x39C38C7f97EFF6E7004d003e541D3119C5f6bF61';
+export const contractAddress = '0x7188DFDb77819F20a9e479eA0445169388EcBdf1';
 const abi = [
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: 'uint256',
-        name: 'id',
-        type: 'uint256',
-      },
-      {
-        indexed: false,
-        internalType: 'address',
-        name: 'author',
-        type: 'address',
-      },
-      {
-        indexed: false,
-        internalType: 'string',
-        name: 'color',
-        type: 'string',
-      },
-    ],
-    name: 'PixelChanged',
-    type: 'event',
-  },
   {
     inputs: [],
     name: 'claimRefund',
@@ -69,6 +44,68 @@ const abi = [
     type: 'function',
   },
   {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'id',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'author',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'color',
+        type: 'string',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'newOwner',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'newAmount',
+        type: 'uint256',
+      },
+    ],
+    name: 'PixelChanged',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'id',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'owner',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'amount',
+        type: 'uint256',
+      },
+    ],
+    name: 'PixelOwned',
+    type: 'event',
+  },
+  {
     inputs: [
       {
         internalType: 'uint256',
@@ -92,30 +129,36 @@ const abi = [
     type: 'function',
   },
   {
+    inputs: [
+      {
+        internalType: 'string',
+        name: '_pseudo',
+        type: 'string',
+      },
+    ],
+    name: 'setPseudo',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [],
-    name: 'getFullGrid',
+    name: 'getGrid',
     outputs: [
       {
-        components: [
-          {
-            internalType: 'address',
-            name: 'topLocker',
-            type: 'address',
-          },
-          {
-            internalType: 'uint256',
-            name: 'highestAmountLocked',
-            type: 'uint256',
-          },
-          {
-            internalType: 'string',
-            name: 'color',
-            type: 'string',
-          },
-        ],
-        internalType: 'struct PixelGrid.Pixel[]',
+        internalType: 'address[2500]',
         name: '',
-        type: 'tuple[]',
+        type: 'address[2500]',
+      },
+      {
+        internalType: 'uint256[2500]',
+        name: '',
+        type: 'uint256[2500]',
+      },
+      {
+        internalType: 'string[2500]',
+        name: '',
+        type: 'string[2500]',
       },
     ],
     stateMutability: 'view',
@@ -157,6 +200,25 @@ const abi = [
         internalType: 'struct PixelGrid.Pixel',
         name: '',
         type: 'tuple',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: '_user',
+        type: 'address',
+      },
+    ],
+    name: 'getPseudo',
+    outputs: [
+      {
+        internalType: 'string',
+        name: '',
+        type: 'string',
       },
     ],
     stateMutability: 'view',
@@ -211,19 +273,6 @@ const abi = [
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'SIZE',
-    outputs: [
-      {
-        internalType: 'uint256',
-        name: '',
-        type: 'uint256',
-      },
-    ],
-    stateMutability: 'view',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         internalType: 'address',
@@ -243,32 +292,13 @@ const abi = [
     type: 'function',
   },
   {
-    inputs: [
-      {
-        internalType: 'string',
-        name: '_pseudo',
-        type: 'string',
-      },
-    ],
-    name: 'setPseudo',
-    outputs: [],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
-    inputs: [
-      {
-        internalType: 'address',
-        name: '_user',
-        type: 'address',
-      },
-    ],
-    name: 'getPseudo',
+    inputs: [],
+    name: 'SIZE',
     outputs: [
       {
-        internalType: 'string',
+        internalType: 'uint256',
         name: '',
-        type: 'string',
+        type: 'uint256',
       },
     ],
     stateMutability: 'view',

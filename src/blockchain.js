@@ -35,25 +35,28 @@ async function createBlockchainClient() {
 }
 
 async function loadGrid(contract) {
-  console.log('Chargement de la grille...');
-  try {
-    const pixels = await contract.methods.getFullGrid().call();
-    console.log('Grille dessinée.');
-    return pixels;
-  } catch (error) {
-    console.error('Échec de getFullGrid():', error);
-    throw error;
+  const {
+    0: topLockers,
+    1: highestAmountsLocked,
+    2: colors,
+  } = await contract.methods.getGrid().call();
+
+  const pixels = [];
+  for (let i = 0; i < topLockers.length; i++) {
+    pixels.push({
+      topLocker: topLockers[i],
+      highestAmountLocked: highestAmountsLocked[i],
+      color: colors[i] === '' ? '#FFFFFF' : colors[i],
+    });
   }
+  return pixels;
 }
 
 function startGridPolling(refreshGrid) {
-  if (gridRefreshIntervalId !== null) {
-    return;
+  if (gridRefreshIntervalId) {
+    clearInterval(gridRefreshIntervalId);
   }
-
-  gridRefreshIntervalId = window.setInterval(() => {
-    refreshGrid();
-  }, GRID_REFRESH_INTERVAL_MS);
+  gridRefreshIntervalId = setInterval(refreshGrid, GRID_REFRESH_INTERVAL_MS);
 }
 
 function subscribeToPixelChanges(
@@ -82,10 +85,12 @@ function subscribeToPixelChanges(
     }
 
     subscription.on('data', (event) => {
-      const { id, color } = event.returnValues;
+      const { id, color, newOwner, newAmount } = event.returnValues;
       onPixelChanged({
         id: Number(id),
         color,
+        owner: newOwner,
+        amount: newAmount,
       });
     });
 

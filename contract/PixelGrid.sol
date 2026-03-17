@@ -16,7 +16,8 @@ contract PixelGrid {
 
     mapping(uint256 => Pixel) public grid;
 
-    event PixelChanged(uint256 id, address author, string color);
+    event PixelChanged(uint256 id, address author, string color, address newOwner, uint256 newAmount);
+    event PixelOwned(uint256 id, address owner, uint256 amount);
 
     function getPixel(uint256 _x, uint256 _y) public view returns (Pixel memory) {
         require(_x < SIZE && _y < SIZE, "Hors limites");
@@ -31,7 +32,7 @@ contract PixelGrid {
         require(pixel.topLocker == msg.sender, "Vous devez etre le proprietaire du pixel pour le modifier");
         pixel.color = _color;
 
-        emit PixelChanged(id, msg.sender, _color);
+        emit PixelChanged(id, msg.sender, _color, pixel.topLocker, pixel.highestAmountLocked);
     }
 
     function giveUpPixel(uint256 _x, uint256 _y) public {
@@ -48,7 +49,7 @@ contract PixelGrid {
         pixel.highestAmountLocked = 0;
         pixel.color = "#FFFFFF"; 
 
-        emit PixelChanged(id, msg.sender, pixel.color); 
+        emit PixelChanged(id, msg.sender, pixel.color, address(0), 0);
     }
 
     function ownPixel(uint256 _x, uint256 _y) public payable {
@@ -65,15 +66,8 @@ contract PixelGrid {
         pixel.topLocker = msg.sender;
         pixel.highestAmountLocked = msg.value;
         pixel.color = "#F527C8";
-        emit PixelChanged(id, msg.sender, pixel.color); 
-    }
-
-    function getFullGrid() public view returns (Pixel[] memory) {
-        Pixel[] memory allPixels = new Pixel[](SIZE * SIZE);
-        for (uint256 i = 0; i < SIZE * SIZE; i++) {
-            allPixels[i] = grid[i];
-        }
-        return allPixels;
+        emit PixelOwned(id, msg.sender, msg.value);
+        emit PixelChanged(id, msg.sender, pixel.color, msg.sender, msg.value);
     }
 
     function claimRefund() public {
@@ -92,5 +86,20 @@ contract PixelGrid {
 
     function getPseudo(address _user) public view returns (string memory) {
         return pseudos[_user];
+    }
+
+    function getGrid() public view returns (address[SIZE*SIZE] memory, uint256[SIZE*SIZE] memory, string[SIZE*SIZE] memory) {
+        address[SIZE*SIZE] memory topLockers;
+        uint256[SIZE*SIZE] memory highestAmountsLocked;
+        string[SIZE*SIZE] memory colors;
+
+        for (uint id = 0; id < SIZE*SIZE; id++) {
+            Pixel storage pixel = grid[id];
+            topLockers[id] = pixel.topLocker;
+            highestAmountsLocked[id] = pixel.highestAmountLocked;
+            colors[id] = pixel.color;
+        }
+
+        return (topLockers, highestAmountsLocked, colors);
     }
 }
