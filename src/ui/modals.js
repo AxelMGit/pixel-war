@@ -1,5 +1,5 @@
 import { removeDomModal } from '../dom.js';
-import { qs, shorten } from './utils.js';
+import { qs } from './utils.js';
 
 export function showToast(msg, ms = 3000) {
   const t = qs('toast');
@@ -81,7 +81,6 @@ export function showBuyPopup(
   root.appendChild(backdrop);
 
   const amountInput = card.querySelector('#modalAmountInput');
-  const warningEl = card.querySelector('#modalWarning');
   const btnCancel = card.querySelector('#modalCancel');
   const btnConfirm = card.querySelector('#modalConfirm');
 
