@@ -1,5 +1,4 @@
 import controls from './ui/controls.js';
-import { connectWalletUI } from './ui/wallet.js';
 import {
   showEditPseudoModal,
   showReturnPopup,
@@ -29,8 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
     connectBtn.addEventListener('click', () => {
       if (isConnected) {
         window.location.reload();
-      } else {
-        connectWalletUI();
       }
     });
   }
