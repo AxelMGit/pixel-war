@@ -1,11 +1,12 @@
 import {
-  createBlockchainClient,
-  loadGrid,
-  sendPixel,
-  startGridPolling,
-  subscribeToPixelChanges,
-  getPixel,
-  ownPixel,
+    createBlockchainClient,
+    loadGrid,
+    sendPixel,
+    startGridPolling,
+    subscribeToPixelChanges,
+    getPixel,
+    ownPixel,
+    giveUpPixel
 } from './blockchain.js';
 import {
   canvas,
@@ -88,10 +89,34 @@ async function init() {
         setStatus(`Erreur: ${error.message}`);
       }
     });
-  } catch (error) {
-    console.error("Erreur d'initialisation:", error);
-    setStatus(`Erreur: ${error.message}`);
-  }
+    canvas.addEventListener('contextmenu', async (event) => {
+        event.preventDefault(); // Empêcher le menu contextuel par défaut
+        const { x, y } = getCanvasCoordinates(event);
+
+        setStatus('Vérification du propriétaire du pixel...');
+
+        try {
+            const accounts = await web3.eth.getAccounts();
+            const account = accounts[0];
+            const pixel = await getPixel(contract, x, y);
+
+            if (pixel.topLocker.toLowerCase() === account.toLowerCase()) {
+                setStatus('Transaction en cours pour vendre le pixel. Veuillez confirmer dans votre wallet...');
+                await giveUpPixel(contract, web3, { x, y });
+                setStatus('Transaction validée ! Vous avez vendu ce pixel.');
+            } else {
+                setStatus('Vous ne pouvez vendre que vos propres pixels.');
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            setStatus(`Erreur: ${error.message}`);
+        }
+    });
+
+    } catch (error) {
+        console.error("Erreur d'initialisation:", error);
+        setStatus(`Erreur: ${error.message}`);
+    }
 }
 
 init();
