@@ -10,6 +10,7 @@ import {
   getPseudoCached,
   setPseudo,
   claimRefund,
+  getPendingRefund,
 } from './blockchain.js';
 import {
   canvas,
@@ -37,6 +38,13 @@ async function init() {
             detail: { pseudo: myPseudo || '' },
           })
         );
+
+        const pendingRefund = await getPendingRefund(contract, web3);
+        window.dispatchEvent(
+          new CustomEvent('ui:refundAmountLoaded', {
+            detail: { amount: pendingRefund },
+          })
+        );
       }
 
       const claimBtn = document.getElementById('claimRefundButton');
@@ -46,6 +54,12 @@ async function init() {
           try {
             await claimRefund(contract, web3);
             setStatus('Remboursement réclamé avec succès.');
+            const pendingRefund = await getPendingRefund(contract, web3);
+            window.dispatchEvent(
+              new CustomEvent('ui:refundAmountLoaded', {
+                detail: { amount: pendingRefund },
+              })
+            );
           } catch (err) {
             console.error('Erreur claimRefund:', err);
             setStatus('Erreur lors de la réclamation du remboursement.');
@@ -93,6 +107,21 @@ async function init() {
         console.log(`Événement reçu: Pixel ${id} mis à jour avec ${color}`);
         drawSinglePixel(id, color);
         setStatus('Pixel posé !');
+      },
+      onPixelOwnerChanged: async () => {
+        try {
+          const accounts = await web3.eth.getAccounts();
+          if (accounts.length > 0) {
+            const pendingRefund = await getPendingRefund(contract, web3);
+            window.dispatchEvent(
+              new CustomEvent('ui:refundAmountLoaded', {
+                detail: { amount: pendingRefund },
+              })
+            );
+          }
+        } catch (err) {
+          console.warn('Could not refresh pending refund amount', err);
+        }
       },
       onSubscriptionUnavailable: () => {
         startGridPolling(refreshGrid);
@@ -204,6 +233,11 @@ async function init() {
           );
           await giveUpPixel(contract, web3, { x, y });
           setStatus('Transaction validée ! Vous avez vendu ce pixel.');
+          window.dispatchEvent(
+            new CustomEvent('ui:refundAmountLoaded', {
+              detail: { amount: await getPendingRefund(contract, web3) },
+            })
+          );
         } else {
           setStatus('Vous ne pouvez vendre que vos propres pixels.');
         }

@@ -13,6 +13,20 @@ document.addEventListener('DOMContentLoaded', () => {
   if (connectBtn) connectBtn.addEventListener('click', connectWallet);
 });
 
+window.addEventListener('ui:refundAmountLoaded', (ev) => {
+  const amount = ev.detail && ev.detail.amount;
+  const claimBtn = document.getElementById('claimRefundButton');
+  console.log('Montant de remboursement chargé :', amount);
+  if (claimBtn) {
+    if (Number(amount) > 0) {
+      claimBtn.textContent = `Réclamer ${Number(amount).toFixed(4)} ETH`;
+      claimBtn.style.display = '';
+    } else {
+      claimBtn.style.display = 'none';
+    }
+  }
+});
+
 window.addEventListener('ui:showEditPseudo', () => showEditPseudoModal());
 
 window.addEventListener('ui:confirmReturn', (ev) => {
