@@ -78,7 +78,7 @@ async function init() {
       },
     });
 
-    canvas.addEventListener('mousedown', async (event) => {
+    canvas.addEventListener('click', async (event) => {
       const { x, y } = getCanvasCoordinates(event);
       const color = getSelectedColor();
 
