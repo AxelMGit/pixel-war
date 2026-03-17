@@ -213,7 +213,6 @@ async function init() {
       }
     });
 
-    // actual return action (emitted by UI after user confirms)
     window.addEventListener('ui:returnPixel', async (ev) => {
       const { x, y } = ev.detail || {};
       setStatus('Vérification du propriétaire du pixel...');
