@@ -70,7 +70,7 @@ function showErrorModal(message) {
 
 function getCanvasCoordinates(event) {
   const rect = canvas.getBoundingClientRect();
-  const perPixel = rect.width / GRID_SIZE; // compute from rendered size (accounts for CSS scale)
+  const perPixel = rect.width / GRID_SIZE;
 
   return {
     x: Math.floor((event.clientX - rect.left) / perPixel),
