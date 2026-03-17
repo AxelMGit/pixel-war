@@ -35,6 +35,12 @@ function drawGrid(pixels) {
   });
 }
 
+function drawSelectionRectangle(x, y, width, height) {
+  ctx.strokeStyle = 'rgba(0, 0, 255, 0.5)';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x * pixelSize, y * pixelSize, width * pixelSize, height * pixelSize);
+}
+
 function getPixelId(x, y) {
   return x + y * GRID_SIZE;
 }

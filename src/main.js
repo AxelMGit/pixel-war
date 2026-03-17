@@ -9,6 +9,7 @@ import {
   giveUpPixel,
   getPseudoCached,
   setPseudo,
+  ownPixels,
 } from './blockchain.js';
 import {
   canvas,
@@ -18,7 +19,7 @@ import {
   showOwnPixelModal,
   showBidPixelModal,
 } from './dom.js';
-import { drawGrid, drawSinglePixel, getPixelId } from './grid.js';
+import { drawGrid, drawSinglePixel, getPixelId, drawSelectionRectangle } from './grid.js';
 
 async function init() {
   try {
@@ -145,6 +146,59 @@ async function init() {
         setStatus(`Erreur: ${error.message}`);
       }
     });
+
+    // on drag, get all pixels in the dragged area and call ownPixels with all coordinate
+    let isDragging = false;
+    let dragStart = null;
+
+    canvas.addEventListener('mousedown', (event) => {
+      isDragging = true;
+      dragStart = getCanvasCoordinates(event);
+    });
+    
+    canvas.addEventListener('mousemove', (event) => {
+      if (!isDragging) return;
+      const { x, y } = getCanvasCoordinates(event);
+      const width = Math.abs(x - dragStart.x);
+      const height = Math.abs(y - dragStart.y);
+      const startX = Math.min(x, dragStart.x);
+      const startY = Math.min(y, dragStart.y);
+
+      // Redessiner la grille pour effacer les anciens rectangles de sélection
+      refreshGrid();
+      drawSelectionRectangle(startX, startY, width, height);
+    });
+
+    canvas.addEventListener('mouseup', async (event) => {
+      if (!isDragging) return;
+      isDragging = false;
+      const dragEnd = getCanvasCoordinates(event);
+      
+      const xList = [];
+      const yList = [];
+      for (let x = Math.min(dragStart.x, dragEnd.x); x <= Math.max(dragStart.x, dragEnd.x); x++) {
+        for (let y = Math.min(dragStart.y, dragEnd.y); y <= Math.max(dragStart.y, dragEnd.y); y++) {
+          xList.push(x);
+          yList.push(y);
+        }
+      }
+
+      const color = getSelectedColor();
+      const amountPerPixel = await showBidPixelModal('0'); 
+
+      setStatus(
+        'Transaction en cours pour posséder les pixels sélectionnés. Veuillez confirmer dans votre wallet...'
+      );
+
+      try {
+        await ownPixels(contract, web3, { xList, yList, amount: amountPerPixel });
+        setStatus('Transaction validée ! Vous possédez maintenant les pixels sélectionnés.');
+      } catch (error) {
+        console.error('Erreur:', error);
+        setStatus(`Erreur: ${error.message}`);
+      }
+    });
+
   } catch (error) {
     console.error("Erreur d'initialisation:", error);
     setStatus(`Erreur: ${error.message}`);
