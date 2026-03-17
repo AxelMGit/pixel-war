@@ -127,7 +127,6 @@ async function init() {
       },
     });
 
-    // Listen to UI events emitted by `src/ui.js` (buy / return actions)
     window.addEventListener('ui:buyPixel', async (ev) => {
       const { x, y, color, amount } = ev.detail || {};
       setStatus('Vérification du propriétaire du pixel...');
