@@ -135,7 +135,6 @@ async function init() {
         const account = accounts[0];
         const pixel = await getPixel(contract, x, y);
 
-        // If the UI provided an amount, validate it here (numeric and > current bid when needed)
         if (amount) {
           const cleaned = String(amount).replace(',', '.');
           const entered = parseFloat(cleaned);
