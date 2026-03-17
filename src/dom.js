@@ -7,27 +7,27 @@ const statusEl = document.getElementById('status');
 const colorPickerEl = document.getElementById('colorPicker');
 
 function setStatus(message) {
-    statusEl.innerText = message;
+  statusEl.innerText = message;
 }
 
 function getCanvasCoordinates(event) {
-    const rect = canvas.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
 
-    return {
-        x: Math.floor((event.clientX - rect.left) / pixelSize),
-        y: Math.floor((event.clientY - rect.top) / pixelSize)
-    };
+  return {
+    x: Math.floor((event.clientX - rect.left) / pixelSize),
+    y: Math.floor((event.clientY - rect.top) / pixelSize),
+  };
 }
 
 function getSelectedColor() {
-    return colorPickerEl.value;
+  return colorPickerEl.value;
 }
 
 export {
-    canvas,
-    ctx,
-    pixelSize,
-    setStatus,
-    getCanvasCoordinates,
-    getSelectedColor
+  canvas,
+  ctx,
+  pixelSize,
+  setStatus,
+  getCanvasCoordinates,
+  getSelectedColor,
 };
