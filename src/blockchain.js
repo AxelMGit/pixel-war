@@ -97,10 +97,15 @@ async function sendPixel(contract, web3, { x, y, color }) {
     
 }
 
+function getPixelDetails (contract, x, y) {
+    return contract.methods.getPixel(x, y).call();
+}
+
 export {
     createBlockchainClient,
     loadGrid,
     sendPixel,
     startGridPolling,
-    subscribeToPixelChanges
+    subscribeToPixelChanges,
+    getPixelDetails
 };
