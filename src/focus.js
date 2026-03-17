@@ -1,13 +1,11 @@
-import { canvas, pixelSize } from './dom.js';
+import { canvas, pixelSize, getCanvasCoordinates } from './dom.js';
 import { GRID_SIZE } from './config.js';
 import { getPixelDetails, createBlockchainClient } from './blockchain.js';
 
 // Écouter les mouvements de la souris sur le canvas pour afficher les données du pixel
 canvas.addEventListener('mousemove', async (e) => {
-    const { web3, contract, connectionLabel } = await createBlockchainClient();
-    const rect = canvas.getBoundingClientRect();
-    const x = Math.floor((e.clientX - rect.left) / pixelSize);
-    const y = Math.floor((e.clientY - rect.top) / pixelSize);
+    const { contract } = await createBlockchainClient();
+    const { x, y } = getCanvasCoordinates(e);
 
     if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
         try {
