@@ -35,6 +35,17 @@
         </div>
     </div>
 
+    <div id="bidPixelModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Surenchérir sur ce pixel</h2>
+            <p>Montant actuel: <span id="currentBid"></span> ETH</p>
+            <p>Entrez un montant supérieur pour acheter ce pixel :</p>
+            <input type="text" id="bidAmount" placeholder="0.2" />
+            <button id="bidPixelButton">Surenchérir</button>
+        </div>
+    </div>
+
     <script type="module" src="app.js"></script>
     <script type="module" src="./src/focus.js"></script>
   </body>
