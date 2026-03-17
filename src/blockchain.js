@@ -89,12 +89,29 @@ function subscribeToPixelChanges(contract, { onPixelChanged, onSubscriptionUnava
 async function sendPixel(contract, web3, { x, y, color }) {
     const accounts = await web3.eth.getAccounts();
     const account = accounts[0];
-    
+    const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
     await contract.methods.setPixel(x, y, color).send({
-        from: account
+        from: account,
+        nonce
     });
     
+}
+
+async function getPixel(contract, x, y) {
+    return await contract.methods.getPixel(x, y).call();
+}
+
+async function ownPixel(contract, web3, { x, y, amount }) {
+    const accounts = await web3.eth.getAccounts();
+    const account = accounts[0];
+    const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+    await contract.methods.ownPixel(x, y).send({
+        from: account,
+        value: web3.utils.toWei(amount, 'ether'),
+        nonce
+    });
 }
 
 export {
@@ -102,5 +119,7 @@ export {
     loadGrid,
     sendPixel,
     startGridPolling,
-    subscribeToPixelChanges
+    subscribeToPixelChanges,
+    getPixel,
+    ownPixel
 };

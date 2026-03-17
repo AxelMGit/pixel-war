@@ -1,30 +1,5 @@
-export const contractAddress = "0x42E8725b2c1C01cdeC9522DAD89B4e2F8b625De4";
+export const contractAddress = "0x89dab1ECD44553B3b680b4cd24cdf225f209a467";
 const abi = [
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "id",
-				"type": "uint256"
-			},
-			{
-				"indexed": false,
-				"internalType": "address",
-				"name": "author",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "color",
-				"type": "string"
-			}
-		],
-		"name": "PixelChanged",
-		"type": "event"
-	},
 	{
 		"inputs": [],
 		"name": "claimRefund",
@@ -49,6 +24,31 @@ const abi = [
 		"outputs": [],
 		"stateMutability": "payable",
 		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "author",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "color",
+				"type": "string"
+			}
+		],
+		"name": "PixelChanged",
+		"type": "event"
 	},
 	{
 		"inputs": [
