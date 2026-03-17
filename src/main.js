@@ -27,7 +27,6 @@ async function init() {
     const { web3, contract, connectionLabel } = await createBlockchainClient();
     setStatus(connectionLabel);
 
-    // Initialiser le pseudo de l'utilisateur : fetch et prévenir l'UI
     try {
       const accounts = await web3.eth.getAccounts();
       const account = accounts[0];
