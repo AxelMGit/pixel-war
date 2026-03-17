@@ -56,10 +56,7 @@ function startGridPolling(refreshGrid) {
   if (gridRefreshIntervalId) {
     clearInterval(gridRefreshIntervalId);
   }
-  gridRefreshIntervalId = setInterval(
-    refreshGrid,
-    GRID_REFRESH_INTERVAL_MS
-  );
+  gridRefreshIntervalId = setInterval(refreshGrid, GRID_REFRESH_INTERVAL_MS);
 }
 
 function subscribeToPixelChanges(
@@ -93,7 +90,7 @@ function subscribeToPixelChanges(
         id: Number(id),
         color,
         owner: newOwner,
-        amount: newAmount
+        amount: newAmount,
       });
     });
 
