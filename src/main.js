@@ -69,7 +69,6 @@ async function init() {
       console.warn("Impossible d'initialiser le pseudo:", err);
     }
 
-    // Écouter les demandes de modification de pseudo depuis l'UI
     window.addEventListener('ui:setPseudo', async (ev) => {
       const newPseudo = ev.detail && ev.detail.pseudo;
       if (typeof newPseudo !== 'string') return;
