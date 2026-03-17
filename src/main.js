@@ -27,9 +27,9 @@ async function init() {
       }
     };
 
-        await refreshGrid();
+    await refreshGrid();
 
-        startGridPolling(refreshGrid);
+    startGridPolling(refreshGrid);
 
     subscribeToPixelChanges(contract, {
       onPixelChanged: ({ id, color }) => {

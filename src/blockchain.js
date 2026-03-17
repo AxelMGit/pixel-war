@@ -1,10 +1,10 @@
-import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.16.0/+esm'
+// eslint-disable-next-line node/no-missing-import
+import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.16.0/+esm';
 
-import abi, { contractAddress as abiContractAddress } from './ressources/contract.js';
-import {
-    GANACHE_RPC_URL,
-    GRID_REFRESH_INTERVAL_MS
-} from './config.js';
+import abi, {
+  contractAddress as abiContractAddress,
+} from './ressources/contract.js';
+import { GANACHE_RPC_URL, GRID_REFRESH_INTERVAL_MS } from './config.js';
 
 let gridRefreshIntervalId = null;
 
@@ -12,16 +12,18 @@ async function createBlockchainClient() {
   let web3;
   let connectionLabel;
 
-    if (window.ethereum) {
-        web3 = new Web3(window.ethereum);
-        await window.ethereum.request({ method: 'eth_requestAccounts' });
-        connectionLabel = 'Connecté via MetaMask !';
-    } else {
-        console.warn('Wallet non détecté, tentative de connexion à Ganache (localhost).');
-        web3 = new Web3(GANACHE_RPC_URL);
-        connectionLabel = 'Connecté à Ganache !';
-    }
-    const contract = new web3.eth.Contract(abi, abiContractAddress);
+  if (window.ethereum) {
+    web3 = new Web3(window.ethereum);
+    await window.ethereum.request({ method: 'eth_requestAccounts' });
+    connectionLabel = 'Connecté via MetaMask !';
+  } else {
+    console.warn(
+      'Wallet non détecté, tentative de connexion à Ganache (localhost).'
+    );
+    web3 = new Web3(GANACHE_RPC_URL);
+    connectionLabel = 'Connecté à Ganache !';
+  }
+  const contract = new web3.eth.Contract(abi, abiContractAddress);
 
   return {
     web3,
@@ -99,14 +101,12 @@ function subscribeToPixelChanges(
 }
 
 async function sendPixel(contract, web3, { x, y, color }) {
-    const accounts = await web3.eth.getAccounts();
-    const account = accounts[0];
-    
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
 
-    await contract.methods.setPixel(x, y, color).send({
-        from: account
-    });
-    
+  await contract.methods.setPixel(x, y, color).send({
+    from: account,
+  });
 }
 
 export {
