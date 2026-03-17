@@ -49,7 +49,7 @@ contract PixelGrid {
         // Mettre à jour le pixel avec le nouveau propriétaire et montant
         pixel.topLocker = msg.sender;
         pixel.highestAmountLocked = msg.value;
-        pixel.color = "F527C8";
+        pixel.color = "#F527C8";
         emit PixelChanged(id, msg.sender, pixel.color); 
     }
 

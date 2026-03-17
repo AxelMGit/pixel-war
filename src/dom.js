@@ -11,6 +11,12 @@ const closeButton = ownPixelModal.querySelector('.close-button');
 const ownPixelButton = document.getElementById('ownPixelButton');
 const pixelAmountInput = document.getElementById('pixelAmount');
 
+const bidPixelModal = document.getElementById('bidPixelModal');
+const bidCloseButton = bidPixelModal.querySelector('.close-button');
+const bidPixelButton = document.getElementById('bidPixelButton');
+const bidAmountInput = document.getElementById('bidAmount');
+const currentBidEl = document.getElementById('currentBid');
+
 function setStatus(message) {
   statusEl.innerText = message;
 }
@@ -47,17 +53,43 @@ function showOwnPixelModal() {
       }
     };
 
-    closeButton.onclick = close;
-    ownPixelButton.onclick = own;
-  });
+        closeButton.onclick = close;
+        ownPixelButton.onclick = own;
+    });
+}
+
+function showBidPixelModal(currentBid) {
+    return new Promise((resolve, reject) => {
+        currentBidEl.innerText = currentBid;
+        bidPixelModal.style.display = 'flex';
+
+        const close = () => {
+            bidPixelModal.style.display = 'none';
+            reject(new Error('Transaction annulée.'));
+        };
+
+        const bid = () => {
+            const amount = bidAmountInput.value;
+            if (amount) {
+                bidPixelModal.style.display = 'none';
+                resolve(amount);
+            } else {
+                alert('Veuillez entrer un montant.');
+            }
+        };
+
+        bidCloseButton.onclick = close;
+        bidPixelButton.onclick = bid;
+    });
 }
 
 export {
-  canvas,
-  ctx,
-  pixelSize,
-  setStatus,
-  getCanvasCoordinates,
-  getSelectedColor,
-  showOwnPixelModal,
+    canvas,
+    ctx,
+    pixelSize,
+    setStatus,
+    getCanvasCoordinates,
+    getSelectedColor,
+    showOwnPixelModal,
+    showBidPixelModal
 };
