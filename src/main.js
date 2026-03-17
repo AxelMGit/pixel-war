@@ -10,6 +10,7 @@ import {
   getPseudoCached,
   setPseudo,
   ownPixels,
+  setPixels,
 } from './blockchain.js';
 import {
   canvas,
@@ -84,7 +85,14 @@ async function init() {
       },
     });
 
+    // on drag, get all pixels in the dragged area and call ownPixels with all coordinate
+    let isMouseDown = false;
+    let isDragging = false;
+    let dragStart = null;
+
     canvas.addEventListener('click', async (event) => {
+      if (isDragging) return; // Ignore single click event if we were just dragging
+
       const { x, y } = getCanvasCoordinates(event);
       const color = getSelectedColor();
 
@@ -152,18 +160,22 @@ async function init() {
       }
     });
 
-    // on drag, get all pixels in the dragged area and call ownPixels with all coordinate
-    let isDragging = false;
-    let dragStart = null;
-
     canvas.addEventListener('mousedown', (event) => {
-      isDragging = true;
+      isMouseDown = true;
+      isDragging = false;
       dragStart = getCanvasCoordinates(event);
     });
 
     canvas.addEventListener('mousemove', (event) => {
-      if (!isDragging) return;
+      if (!isMouseDown) return;
       const { x, y } = getCanvasCoordinates(event);
+
+      if (x !== dragStart.x || y !== dragStart.y) {
+        isDragging = true;
+      }
+
+      if (!isDragging) return;
+
       const width = Math.abs(x - dragStart.x);
       const height = Math.abs(y - dragStart.y);
       const startX = Math.min(x, dragStart.x);
@@ -175,35 +187,75 @@ async function init() {
     });
 
     canvas.addEventListener('mouseup', async (event) => {
+      if (!isMouseDown) return;
+      isMouseDown = false;
+
       if (!isDragging) return;
-      isDragging = false;
+
       const dragEnd = getCanvasCoordinates(event);
 
-      const xList = [];
-      const yList = [];
-      for (
-        let x = Math.min(dragStart.x, dragEnd.x);
-        x <= Math.max(dragStart.x, dragEnd.x);
-        x++
-      ) {
-        for (
-          let y = Math.min(dragStart.y, dragEnd.y);
-          y <= Math.max(dragStart.y, dragEnd.y);
-          y++
-        ) {
-          xList.push(x);
-          yList.push(y);
-        }
-      }
-
-      const color = getSelectedColor();
-      const amountPerPixel = await showBidPixelModal('0');
-
-      setStatus(
-        'Transaction en cours pour posséder les pixels sélectionnés. Veuillez confirmer dans votre wallet...'
-      );
+      setStatus('Vérification des pixels sélectionnés...');
 
       try {
+        const accounts = await web3.eth.getAccounts();
+        const account = accounts[0].toLowerCase();
+
+        const pixels = await loadGrid(contract);
+
+        const xList = [];
+        const yList = [];
+        for (
+          let x = Math.min(dragStart.x, dragEnd.x);
+          x <= Math.max(dragStart.x, dragEnd.x);
+          x++
+        ) {
+          for (
+            let y = Math.min(dragStart.y, dragEnd.y);
+            y <= Math.max(dragStart.y, dragEnd.y);
+            y++
+          ) {
+            const pixelId = getPixelId(x, y);
+            const pixel = pixels[pixelId];
+
+            if (pixel.topLocker.toLowerCase() !== account) {
+              xList.push(x);
+              yList.push(y);
+            }
+          }
+        }
+
+        if (xList.length === 0) {
+          setStatus('Tous les pixels vous appartiennent. Transaction(s) en cours...');
+          const color = getSelectedColor();
+          let xlistBis = [];
+          let ylistBis = [];
+          
+          for (
+            let x = Math.min(dragStart.x, dragEnd.x);
+            x <= Math.max(dragStart.x, dragEnd.x);
+            x++
+          ) {
+            for (
+              let y = Math.min(dragStart.y, dragEnd.y);
+              y <= Math.max(dragStart.y, dragEnd.y);
+              y++
+            ) {
+              xlistBis.push(x);
+              ylistBis.push(y);
+            }
+          }
+          await setPixels(contract, web3, { xList: xlistBis, yList: ylistBis, colorList: Array(xlistBis.length).fill(color) });
+          setStatus('Couleurs mises à jour avec succès !');
+          return;
+        }
+
+        const color = getSelectedColor();
+        const amountPerPixel = await showBidPixelModal('0');
+
+        setStatus(
+          'Transaction en cours pour posséder les pixels sélectionnés. Veuillez confirmer dans votre wallet...'
+        );
+
         await ownPixels(contract, web3, {
           xList,
           yList,

@@ -50,4 +50,4 @@ function getPixelId(x, y) {
   return x + y * GRID_SIZE;
 }
 
-export { drawGrid, drawSinglePixel, getPixelId };
+export { drawGrid, drawSinglePixel, getPixelId, drawSelectionRectangle };

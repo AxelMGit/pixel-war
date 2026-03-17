@@ -118,6 +118,17 @@ async function sendPixel(contract, web3, { x, y, color }) {
   });
 }
 
+async function setPixels(contract, web3, { xList, yList, colorList }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.setPixels(xList, yList, colorList).send({
+    from: account,
+    nonce,
+  });
+}
+
 async function getPixel(contract, x, y) {
   return await contract.methods.getPixel(x, y).call();
 }
@@ -209,4 +220,5 @@ export {
   getPseudoCached,
   setPseudo,
   ownPixels,
+  setPixels,
 };
