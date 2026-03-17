@@ -1,30 +1,5 @@
-export const contractAddress = "0x60002D68299ccF70E710887bB50E20f1bd853b91";
+export const contractAddress = "0x20Ae0f87fB3f3A4492D365C71d40144a5FE34110";
 const abi = [
-	{
-		"inputs": [],
-		"name": "claimRefund",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_x",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_y",
-				"type": "uint256"
-			}
-		],
-		"name": "ownPixel",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
 	{
 		"anonymous": false,
 		"inputs": [
@@ -49,6 +24,49 @@ const abi = [
 		],
 		"name": "PixelChanged",
 		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "claimRefund",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_y",
+				"type": "uint256"
+			}
+		],
+		"name": "giveUpPixel",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_y",
+				"type": "uint256"
+			}
+		],
+		"name": "ownPixel",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
 	},
 	{
 		"inputs": [
