@@ -24,6 +24,8 @@ async function init() {
 
         await refreshGrid();
 
+        startGridPolling(refreshGrid);
+
         subscribeToPixelChanges(contract, {
             onPixelChanged: ({ id, color }) => {
                 console.log(`Événement reçu: Pixel ${id} mis à jour avec ${color}`);
