@@ -106,7 +106,14 @@ async function sendPixel(contract, web3, { x, y, color }) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
   const nonce = await web3.eth.getTransactionCount(account, 'pending');
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
+  await contract.methods.setPixel(x, y, color).send({
+    from: account,
+    nonce,
+  });
   await contract.methods.setPixel(x, y, color).send({
     from: account,
     nonce,
@@ -114,6 +121,7 @@ async function sendPixel(contract, web3, { x, y, color }) {
 }
 
 async function getPixel(contract, x, y) {
+  return await contract.methods.getPixel(x, y).call();
   return await contract.methods.getPixel(x, y).call();
 }
 
@@ -149,7 +157,15 @@ async function ownPixel(contract, web3, { x, y, amount }) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
   const nonce = await web3.eth.getTransactionCount(account, 'pending');
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
+  await contract.methods.ownPixel(x, y).send({
+    from: account,
+    value: web3.utils.toWei(amount, 'ether'),
+    nonce,
+  });
   await contract.methods.ownPixel(x, y).send({
     from: account,
     value: web3.utils.toWei(amount, 'ether'),

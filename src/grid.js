@@ -12,6 +12,22 @@ function drawSinglePixel(id, color) {
 function drawGrid(pixels) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Draw grid lines
+  ctx.strokeStyle = '#ececec';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= GRID_SIZE; i++) {
+    // Vertical lines
+    ctx.beginPath();
+    ctx.moveTo(i * pixelSize, 0);
+    ctx.lineTo(i * pixelSize, canvas.height);
+    ctx.stroke();
+    // Horizontal lines
+    ctx.beginPath();
+    ctx.moveTo(0, i * pixelSize);
+    ctx.lineTo(canvas.width, i * pixelSize);
+    ctx.stroke();
+  }
+
   pixels.forEach((pixel, index) => {
     if (pixel.color && pixel.color !== '') {
       drawSinglePixel(index, pixel.color);
