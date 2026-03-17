@@ -13,8 +13,17 @@
       <input type="color" id="colorPicker" value="#ff0000" />
       <p>Cliquez sur la grille pour poser un pixel !</p>
     </div>
-
-    <canvas id="pixelCanvas" width="500" height="500"></canvas>
+    <div class="container">
+      <div class="rectangle">
+        <p>
+          <strong>Pixel : </strong> x : <span id="xValue">--</span> y :
+          <span id="yValue">--</span> Propriétaire :
+          <span id="topLockerValue">--</span> Montant :
+          <span id="highestAmountLockedValue">--</span> ETH
+        </p>
+      </div>
+      <canvas id="pixelCanvas" width="500" height="500"></canvas>
+    </div>
 
     <div id="ownPixelModal" class="modal" style="display:none;">
         <div class="modal-content">
@@ -27,5 +36,6 @@
     </div>
 
     <script type="module" src="app.js"></script>
+    <script type="module" src="./src/focus.js"></script>
   </body>
 </html>

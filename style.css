@@ -12,6 +12,14 @@ canvas {
 .controls {
   margin: 20px;
 }
+.rectangle {
+  border: 2px solid #333;
+  background-color: azure;
+  border-radius: 10px;
+  padding: 10px;
+  margin: 20px auto;
+  width: fit-content;
+}
 .controls { margin: 20px; }
 
 .modal {
