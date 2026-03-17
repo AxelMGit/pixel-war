@@ -29,7 +29,6 @@ const currentBidEl = document.getElementById('currentBid');
 
 function setStatus(message) {
   if (typeof message === 'string' && message.toLowerCase().includes('erreur')) {
-    // For errors, show a modal popup instead of writing to header status
     showErrorModal(message);
     console.error('[status]', message);
     return;
