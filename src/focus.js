@@ -19,7 +19,6 @@ canvas.addEventListener('mousemove', async (e) => {
 
   if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
     try {
-      // Backward-compatible DOM updates: only set text if elements exist.
       const xEl = document.getElementById('xValue');
       const yEl = document.getElementById('yValue');
       if (xEl) xEl.innerText = x;

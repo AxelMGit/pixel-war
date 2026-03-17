@@ -88,7 +88,7 @@ function bind() {
         els.cellTooltip.textContent = `x: ${cellX} y: ${cellY}`;
         const rect = els.canvas.getBoundingClientRect();
         els.cellTooltip.style.left = `${e.clientX - rect.left + 12}px`;
-        els.cellTooltip.style.top = `${e.clientY - rect.top + 12}px`;
+        els.cellTooltip.style.top = `${e.clientY - rect.top - 12}px`;
       }
       window.dispatchEvent(
         new CustomEvent('ui:cellHover', { detail: { x: cellX, y: cellY } })
