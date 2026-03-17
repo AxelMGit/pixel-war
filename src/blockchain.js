@@ -61,13 +61,13 @@ function startGridPolling(refreshGrid) {
 
 function subscribeToPixelChanges(
   contract,
-  { onPixelChanged, onSubscriptionUnavailable }
+  { onPixelChanged, onPixelOwnerChanged, onSubscriptionUnavailable }
 ) {
   const subscribe = contract?.events?.PixelChanged;
 
   if (typeof subscribe !== 'function') {
     console.warn(
-      'Les abonnements aux événements ne sont pas disponibles avec le provider actuel.'
+      "Les abonnements aux événements ne sont pas disponibles avec le provider actuel."
     );
     onSubscriptionUnavailable();
     return false;
@@ -86,12 +86,26 @@ function subscribeToPixelChanges(
 
     subscription.on('data', (event) => {
       const { id, color, newOwner, newAmount } = event.returnValues;
-      onPixelChanged({
-        id: Number(id),
-        color,
-        owner: newOwner,
-        amount: newAmount,
-      });
+      if (newOwner === '0x0000000000000000000000000000000000000000') {
+        onPixelChanged({
+          id: Number(id),
+          color,
+        });
+      } else {
+        onPixelChanged({
+          id: Number(id),
+          color,
+          owner: newOwner,
+          amount: newAmount,
+        });
+        if (onPixelOwnerChanged) {
+          onPixelOwnerChanged({
+            id: Number(id),
+            owner: newOwner,
+            amount: newAmount,
+          });
+        }
+      }
     });
 
     subscription.on('error', (error) => {
@@ -184,6 +198,14 @@ async function claimRefund(contract, web3) {
   });
 }
 
+async function getPendingRefund(contract, web3) {
+  const accounts = await web3.eth.getAccounts();
+  if (accounts.length === 0) return '0';
+  const account = accounts[0];
+  const amountWei = await contract.methods.pendingRefunds(account).call();
+  return web3.utils.fromWei(amountWei, 'ether');
+}
+
 export {
   createBlockchainClient,
   loadGrid,
@@ -194,6 +216,7 @@ export {
   ownPixel,
   giveUpPixel,
   claimRefund,
+  getPendingRefund,
   getPseudoCached,
   setPseudo,
 };
