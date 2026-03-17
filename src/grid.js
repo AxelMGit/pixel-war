@@ -29,7 +29,7 @@ function drawGrid(pixels) {
   }
 
   pixels.forEach((pixel, index) => {
-    if (pixel.color && pixel.color !== '') {
+    if (pixel.color && pixel.color !== '' && pixel.color !== '#FFFFFF') {
       drawSinglePixel(index, pixel.color);
     }
   });
