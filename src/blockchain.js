@@ -101,23 +101,39 @@ function subscribeToPixelChanges(
 }
 
 async function sendPixel(contract, web3, { x, y, color }) {
-  const accounts = await web3.eth.getAccounts();
-  const account = accounts[0];
+    const accounts = await web3.eth.getAccounts();
+    const account = accounts[0];
+    const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
-  await contract.methods.setPixel(x, y, color).send({
-    from: account,
-  });
+    await contract.methods.setPixel(x, y, color).send({
+        from: account,
+        nonce
+    });
+    
 }
 
-function getPixelDetails(contract, x, y) {
-  return contract.methods.getPixel(x, y).call();
+async function getPixel(contract, x, y) {
+    return await contract.methods.getPixel(x, y).call();
+}
+
+async function ownPixel(contract, web3, { x, y, amount }) {
+    const accounts = await web3.eth.getAccounts();
+    const account = accounts[0];
+    const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+    await contract.methods.ownPixel(x, y).send({
+        from: account,
+        value: web3.utils.toWei(amount, 'ether'),
+        nonce
+    });
 }
 
 export {
-  createBlockchainClient,
-  loadGrid,
-  sendPixel,
-  startGridPolling,
-  subscribeToPixelChanges,
-  getPixelDetails,
+    createBlockchainClient,
+    loadGrid,
+    sendPixel,
+    startGridPolling,
+    subscribeToPixelChanges,
+    getPixel,
+    ownPixel
 };
