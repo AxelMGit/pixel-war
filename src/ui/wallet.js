@@ -1,4 +1,4 @@
-import { qs, shorten } from './utils.js';
+import { shorten } from './utils.js';
 import { showToast } from './modals.js';
 
 export async function connectWallet() {

@@ -98,7 +98,7 @@ function bind() {
       if (els.cellTooltip) els.cellTooltip.style.display = 'none';
       lastCell = { x: -1, y: -1 };
     });
-    els.canvas.addEventListener('click', (e) => {
+    els.canvas.addEventListener('click', () => {
       if (lastCell.x < 0) return;
       showBuyPopup(
         lastCell.x,
