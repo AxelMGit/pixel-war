@@ -84,7 +84,6 @@ function getSelectedColor() {
 
 function showOwnPixelModal() {
   return new Promise((resolve, reject) => {
-    // If modal is present in DOM, use it, otherwise fallback to prompt
     if (ownPixelModal && pixelAmountInput) {
       ownPixelModal.style.display = 'flex';
 
