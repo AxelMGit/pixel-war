@@ -7,6 +7,8 @@ contract PixelGrid {
     // Track ETH owed to people who were outbid
     mapping(address => uint256) public pendingRefunds;
 
+    mapping(address => string) public pseudos;
+
     struct Pixel {
         address topLocker;
         uint256 highestAmountLocked;
@@ -72,5 +74,13 @@ contract PixelGrid {
         // Send the ETH
         (bool success, ) = msg.sender.call{value: refundAmount}("");
         require(success, "ETH transfer failed");
+    }
+
+    function setPseudo(string memory _pseudo) public {
+        pseudos[msg.sender] = _pseudo;
+    }
+
+    function getPseudo(address _user) public view returns (string memory) {
+        return pseudos[_user];
     }
 }

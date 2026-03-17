@@ -1,6 +1,10 @@
 import { canvas, getCanvasCoordinates } from './dom.js';
 import { GRID_SIZE } from './config.js';
-import { getPixel, createBlockchainClient } from './blockchain.js';
+import {
+  getPixel,
+  createBlockchainClient,
+  getPseudoCached,
+} from './blockchain.js';
 
 // Écouter les mouvements de la souris sur le canvas pour afficher les données du pixel
 canvas.addEventListener('mousemove', async (e) => {
@@ -15,9 +19,15 @@ canvas.addEventListener('mousemove', async (e) => {
       const isPixelSet =
         pixel.topLocker !== '0x0000000000000000000000000000000000000000' &&
         pixel.highestAmountLocked !== '0';
-      document.getElementById('topLockerValue').innerText = isPixelSet
-        ? pixel.topLocker
-        : 'N/A';
+      if (isPixelSet) {
+        const pseudo = await getPseudoCached(contract, pixel.topLocker);
+        document.getElementById('topLockerValue').innerText =
+          pseudo && pseudo.length > 0
+            ? pseudo
+            : pixel.topLocker;
+      } else {
+        document.getElementById('topLockerValue').innerText = 'N/A';
+      }
       document.getElementById('highestAmountLockedValue').innerText = isPixelSet
         ? (Number(pixel.highestAmountLocked) / 10 ** 18).toString()
         : 'N/A';

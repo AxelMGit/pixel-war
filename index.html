@@ -11,6 +11,11 @@
 
     <div class="controls">
       <input type="color" id="colorPicker" value="#ff0000" />
+      <div class="pseudo-control">
+        <label for="pseudoInput">Votre pseudo :</label>
+        <input type="text" id="pseudoInput" placeholder="Entrez votre pseudo" />
+        <button id="savePseudoButton">Sauvegarder</button>
+      </div>
       <p>Cliquez sur la grille pour poser un pixel !</p>
     </div>
     <div class="container">
@@ -25,14 +30,14 @@
       <canvas id="pixelCanvas" width="500" height="500"></canvas>
     </div>
 
-    <div id="ownPixelModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <span class="close-button">&times;</span>
-            <h2>Acheter ce pixel</h2>
-            <p>Entrez le montant en ETH que vous souhaitez mettre sur ce pixel :</p>
-            <input type="text" id="pixelAmount" placeholder="0.1" />
-            <button id="ownPixelButton">Acheter</button>
-        </div>
+    <div id="ownPixelModal" class="modal" style="display: none">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Acheter ce pixel</h2>
+        <p>Entrez le montant en ETH que vous souhaitez mettre sur ce pixel :</p>
+        <input type="text" id="pixelAmount" placeholder="0.1" />
+        <button id="ownPixelButton">Acheter</button>
+      </div>
     </div>
 
     <script type="module" src="app.js"></script>

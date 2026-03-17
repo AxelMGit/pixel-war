@@ -1,19 +1,56 @@
 import {
-    createBlockchainClient,
-    loadGrid,
-    sendPixel,
-    startGridPolling,
-    subscribeToPixelChanges,
-    getPixel,
-    ownPixel
+  createBlockchainClient,
+  loadGrid,
+  sendPixel,
+  startGridPolling,
+  subscribeToPixelChanges,
+  getPixel,
+  ownPixel,
+  getPseudoCached,
+  setPseudo,
 } from './blockchain.js';
-import { canvas, getCanvasCoordinates, getSelectedColor, setStatus, showOwnPixelModal } from './dom.js';
+import {
+  canvas,
+  getCanvasCoordinates,
+  getSelectedColor,
+  setStatus,
+  showOwnPixelModal,
+} from './dom.js';
 import { drawGrid, drawSinglePixel, getPixelId } from './grid.js';
 
 async function init() {
   try {
     const { web3, contract, connectionLabel } = await createBlockchainClient();
     setStatus(connectionLabel);
+
+    // Initialiser le pseudo de l'utilisateur et le contrôle UI
+    try {
+      const accounts = await web3.eth.getAccounts();
+      const account = accounts[0];
+      const pseudoInput = document.getElementById('pseudoInput');
+      const saveBtn = document.getElementById('savePseudoButton');
+
+      if (account && pseudoInput) {
+        const myPseudo = await getPseudoCached(contract, account);
+        pseudoInput.value = myPseudo || '';
+      }
+
+      if (saveBtn && pseudoInput) {
+        saveBtn.addEventListener('click', async () => {
+          const newPseudo = pseudoInput.value || '';
+          setStatus('Enregistrement du pseudo...');
+          try {
+            await setPseudo(contract, web3, newPseudo);
+            setStatus('Pseudo enregistré.');
+          } catch (err) {
+            console.error('Erreur setPseudo:', err);
+            setStatus("Erreur lors de l'enregistrement du pseudo.");
+          }
+        });
+      }
+    } catch (err) {
+      console.warn("Impossible d'initialiser le pseudo:", err);
+    }
 
     const refreshGrid = async () => {
       try {
@@ -47,30 +84,34 @@ async function init() {
         'Transaction en cours. Veuillez confirmer dans votre wallet...'
       );
 
-            setStatus('Vérification du propriétaire du pixel...');
+      setStatus('Vérification du propriétaire du pixel...');
 
-            try {
-                const pixel = await getPixel(contract, x, y);
-                if (pixel.topLocker === '0x0000000000000000000000000000000000000000') {
-                    const amount = await showOwnPixelModal();
-                    setStatus('Transaction en cours. Veuillez confirmer dans votre wallet...');
-                    await ownPixel(contract, web3, { x, y, amount });
-                    setStatus('Transaction validée ! Vous possédez maintenant ce pixel.');
-                } else {
-                    setStatus('Transaction en cours. Veuillez confirmer dans votre wallet...');
-                    await sendPixel(contract, web3, { x, y, color });
-                    drawSinglePixel(getPixelId(x, y), color);
-                    setStatus('Transaction validée !');
-                }
-            } catch (error) {
-                console.error("Erreur:", error);
-                setStatus(`Erreur: ${error.message}`);
-            }
-        });
-    } catch (error) {
-        console.error("Erreur d'initialisation:", error);
+      try {
+        const pixel = await getPixel(contract, x, y);
+        if (pixel.topLocker === '0x0000000000000000000000000000000000000000') {
+          const amount = await showOwnPixelModal();
+          setStatus(
+            'Transaction en cours. Veuillez confirmer dans votre wallet...'
+          );
+          await ownPixel(contract, web3, { x, y, amount });
+          setStatus('Transaction validée ! Vous possédez maintenant ce pixel.');
+        } else {
+          setStatus(
+            'Transaction en cours. Veuillez confirmer dans votre wallet...'
+          );
+          await sendPixel(contract, web3, { x, y, color });
+          drawSinglePixel(getPixelId(x, y), color);
+          setStatus('Transaction validée !');
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
         setStatus(`Erreur: ${error.message}`);
-    }
+      }
+    });
+  } catch (error) {
+    console.error("Erreur d'initialisation:", error);
+    setStatus(`Erreur: ${error.message}`);
+  }
 }
 
 init();
