@@ -19,7 +19,12 @@ import {
   showOwnPixelModal,
   showBidPixelModal,
 } from './dom.js';
-import { drawGrid, drawSinglePixel, getPixelId, drawSelectionRectangle } from './grid.js';
+import {
+  drawGrid,
+  drawSinglePixel,
+  getPixelId,
+  drawSelectionRectangle,
+} from './grid.js';
 
 async function init() {
   try {
@@ -155,7 +160,7 @@ async function init() {
       isDragging = true;
       dragStart = getCanvasCoordinates(event);
     });
-    
+
     canvas.addEventListener('mousemove', (event) => {
       if (!isDragging) return;
       const { x, y } = getCanvasCoordinates(event);
@@ -173,32 +178,45 @@ async function init() {
       if (!isDragging) return;
       isDragging = false;
       const dragEnd = getCanvasCoordinates(event);
-      
+
       const xList = [];
       const yList = [];
-      for (let x = Math.min(dragStart.x, dragEnd.x); x <= Math.max(dragStart.x, dragEnd.x); x++) {
-        for (let y = Math.min(dragStart.y, dragEnd.y); y <= Math.max(dragStart.y, dragEnd.y); y++) {
+      for (
+        let x = Math.min(dragStart.x, dragEnd.x);
+        x <= Math.max(dragStart.x, dragEnd.x);
+        x++
+      ) {
+        for (
+          let y = Math.min(dragStart.y, dragEnd.y);
+          y <= Math.max(dragStart.y, dragEnd.y);
+          y++
+        ) {
           xList.push(x);
           yList.push(y);
         }
       }
 
       const color = getSelectedColor();
-      const amountPerPixel = await showBidPixelModal('0'); 
+      const amountPerPixel = await showBidPixelModal('0');
 
       setStatus(
         'Transaction en cours pour posséder les pixels sélectionnés. Veuillez confirmer dans votre wallet...'
       );
 
       try {
-        await ownPixels(contract, web3, { xList, yList, amount: amountPerPixel });
-        setStatus('Transaction validée ! Vous possédez maintenant les pixels sélectionnés.');
+        await ownPixels(contract, web3, {
+          xList,
+          yList,
+          amount: amountPerPixel,
+        });
+        setStatus(
+          'Transaction validée ! Vous possédez maintenant les pixels sélectionnés.'
+        );
       } catch (error) {
         console.error('Erreur:', error);
         setStatus(`Erreur: ${error.message}`);
       }
     });
-
   } catch (error) {
     console.error("Erreur d'initialisation:", error);
     setStatus(`Erreur: ${error.message}`);
