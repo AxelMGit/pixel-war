@@ -4,6 +4,10 @@ pragma solidity ^0.8.0;
 contract PixelGrid {
     uint256 public constant SIZE = 50;
 
+    address public adminAccount = 0xda1eb582986d35966e879970a7eBd1172260f29E;
+
+    uint256 public pendingAdminRefunds;
+
     mapping(address => uint256) public pendingRefunds;
 
     struct Pixel {
@@ -15,6 +19,8 @@ contract PixelGrid {
     mapping(uint256 => Pixel) public grid;
 
     event PixelChanged(uint256 id, address author, string color);
+
+    uint256 public constant COMMISSION_PERCENTAGE = 5;
 
     function getPixel(uint256 _x, uint256 _y) public view returns (Pixel memory) {
         require(_x < SIZE && _y < SIZE, "Hors limites");
@@ -75,12 +81,25 @@ contract PixelGrid {
     }
 
     function claimRefund() public {
-        uint256 refundAmount = pendingRefunds[msg.sender];
-        require(refundAmount > 0, "You have no funds to refund");
+        uint256 totalRefundAmount = pendingRefunds[msg.sender];
+        require(totalRefundAmount > 0, "You have no funds to refund");
+
+        uint256 userRefundAmount = (totalRefundAmount * (100 - COMMISSION_PERCENTAGE)) / 100;
+        uint256 commission = totalRefundAmount - userRefundAmount;
 
         pendingRefunds[msg.sender] = 0;
+        pendingAdminRefunds += commission;
 
-        (bool success, ) = msg.sender.call{value: refundAmount}("");
+        (bool success, ) = msg.sender.call{value: userRefundAmount}("");
+        require(success, "ETH transfer failed");
+    }
+
+    function claimRefundAdmin() public {
+        require(msg.sender == adminAccount, "Only admin can claim the commission");
+        uint256 amountToClaim = pendingAdminRefunds;
+        require(amountToClaim > 0, "No funds to claim");
+        pendingAdminRefunds = 0;
+        (bool success, ) = adminAccount.call{value: amountToClaim}("");
         require(success, "ETH transfer failed");
     }
 }
