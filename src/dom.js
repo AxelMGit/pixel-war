@@ -105,12 +105,7 @@ function showOwnPixelModal() {
       if (closeButton) closeButton.onclick = close;
       if (ownPixelButton) ownPixelButton.onclick = own;
     } else {
-      const amount = window.prompt(
-        'Entrez le montant en ETH pour acheter ce pixel :',
-        '0.1'
-      );
-      if (amount) resolve(amount);
-      else reject(new Error('Transaction annulée.'));
+      reject(new Error('Transaction annulée.'));
     }
   });
 }
@@ -140,12 +135,7 @@ function showBidPixelModal(currentBid) {
       if (bidCloseButton) bidCloseButton.onclick = close;
       if (bidPixelButton) bidPixelButton.onclick = bid;
     } else {
-      const amount = window.prompt(
-        `Montant actuel: ${currentBid} ETH. Entrez un montant supérieur :`,
-        '0.2'
-      );
-      if (amount) resolve(amount);
-      else reject(new Error('Transaction annulée.'));
+      reject(new Error('Transaction annulée.'));
     }
   });
 }
