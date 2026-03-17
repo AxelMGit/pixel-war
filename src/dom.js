@@ -52,30 +52,6 @@ function showOwnPixelModal() {
     });
 }
 
-function showOwnPixelModal() {
-    return new Promise((resolve, reject) => {
-        ownPixelModal.style.display = 'flex';
-
-        const close = () => {
-            ownPixelModal.style.display = 'none';
-            reject(new Error('Transaction annulée.'));
-        };
-
-        const own = () => {
-            const amount = pixelAmountInput.value;
-            if (amount) {
-                ownPixelModal.style.display = 'none';
-                resolve(amount);
-            } else {
-                alert('Veuillez entrer un montant.');
-            }
-        };
-
-        closeButton.onclick = close;
-        ownPixelButton.onclick = own;
-    });
-}
-
 export {
     canvas,
     ctx,
