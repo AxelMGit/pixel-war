@@ -157,6 +157,28 @@ async function ownPixel(contract, web3, { x, y, amount }) {
   });
 }
 
+async function giveUpPixel(contract, web3, { x, y }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.giveUpPixel(x, y).send({
+    from: account,
+    nonce,
+  });
+}
+
+async function claimRefund(contract, web3) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.claimRefund().send({
+    from: account,
+    nonce,
+  });
+}
+
 export {
   createBlockchainClient,
   loadGrid,
@@ -165,6 +187,8 @@ export {
   subscribeToPixelChanges,
   getPixel,
   ownPixel,
+  giveUpPixel,
+  claimRefund,
   getPseudoCached,
   setPseudo,
 };
