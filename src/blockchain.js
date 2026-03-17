@@ -104,21 +104,20 @@ async function sendPixel(contract, web3, { x, y, color }) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
 
-    await contract.methods.setPixel(x, y, color).send({
-        from: account
-    });
-    
+  await contract.methods.setPixel(x, y, color).send({
+    from: account,
+  });
 }
 
-function getPixelDetails (contract, x, y) {
-    return contract.methods.getPixel(x, y).call();
+function getPixelDetails(contract, x, y) {
+  return contract.methods.getPixel(x, y).call();
 }
 
 export {
-    createBlockchainClient,
-    loadGrid,
-    sendPixel,
-    startGridPolling,
-    subscribeToPixelChanges,
-    getPixelDetails
+  createBlockchainClient,
+  loadGrid,
+  sendPixel,
+  startGridPolling,
+  subscribeToPixelChanges,
+  getPixelDetails,
 };
