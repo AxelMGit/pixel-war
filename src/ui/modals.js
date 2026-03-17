@@ -64,7 +64,6 @@ export function showBuyPopup(
     return;
   }
 
-  // purchase / bid modal
   card.innerHTML = `
     <h3>Acheter / Surenchérir</h3>
     <div class="modal-row">Coordonnées: <strong>${x}, ${y}</strong></div>
