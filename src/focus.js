@@ -6,9 +6,15 @@ import {
   getPseudoCached,
 } from './blockchain.js';
 
+let clientPromise = null;
+async function getBlockchainClient() {
+  if (!clientPromise) clientPromise = createBlockchainClient();
+  return clientPromise;
+}
+
 // Écouter les mouvements de la souris sur le canvas pour afficher les données du pixel
 canvas.addEventListener('mousemove', async (e) => {
-  const { contract } = await createBlockchainClient();
+  const { contract } = await getBlockchainClient();
   const { x, y } = getCanvasCoordinates(e);
 
   if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
