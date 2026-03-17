@@ -15,9 +15,9 @@ canvas.addEventListener('mousemove', async (e) => {
 
     if (x >= 0 && x < size && y >= 0 && y < size) {
         try {
-            const pixel = await window.contract.methods.getPixel(x, y).call();
             document.getElementById('xValue').innerText = x;
             document.getElementById('yValue').innerText = y;
+            const pixel = await contract.methods.getPixel(x, y).call();
             const isPixelSet = pixel.topLocker !== '0x0000000000000000000000000000000000000000' && pixel.highestAmountLocked !== '0';
             document.getElementById('topLockerValue').innerText = isPixelSet ? pixel.topLocker : 'None';
             document.getElementById('highestAmountLockedValue').innerText = isPixelSet ? pixel.highestAmountLocked : 'None';

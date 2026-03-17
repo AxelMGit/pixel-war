@@ -14,14 +14,16 @@
         <input type="color" id="colorPicker" value="#ff0000">
         <p>Cliquez sur la grille pour poser un pixel !</p>
     </div>
+    <div class="container">
         <div class="rectangle">
-        <p><strong>Pixel : </strong>
-        x : <span id="xValue">--</span>
-        y : <span id="yValue">--</span>
-        Propriétaire : <span id="topLockerValue">--</span>
-        Montant : <span id="highestAmountLockedValue">--</span></p>
+            <p><strong>Pixel : </strong>
+            x : <span id="xValue">--</span>
+            y : <span id="yValue">--</span>
+            Propriétaire : <span id="topLockerValue">--</span>
+            Montant : <span id="highestAmountLockedValue">--</span>
+        </div>
+        <canvas id="pixelCanvas" width="500" height="500"></canvas>
     </div>
-    <canvas id="pixelCanvas" width="500" height="500"></canvas>
 
     <script type="module" src="app.js"></script>
     <script src = "focus.js"> </script>
