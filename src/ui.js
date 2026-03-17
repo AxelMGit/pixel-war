@@ -1,16 +1,46 @@
 import controls from './ui/controls.js';
-import { connectWallet } from './ui/wallet.js';
+import { connectWalletUI } from './ui/wallet.js';
 import {
   showEditPseudoModal,
   showReturnPopup,
 } from './ui/modals.js';
-import { qs } from './ui/utils.js';
+import { qs, shorten } from './ui/utils.js';
 import { removeDomModal } from './dom.js';
+
+let isConnected = false;
+
+function updateWalletStatus(address) {
+  const wa = document.getElementById('walletAddress');
+  const ns = document.getElementById('networkStatus');
+  const connectBtn = qs('connectWallet');
+
+  if (wa) wa.textContent = shorten(address);
+  if (ns) ns.textContent = 'Connecté';
+  if (connectBtn) {
+    connectBtn.textContent = 'Se déconnecter';
+    isConnected = true;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   controls.init();
   const connectBtn = qs('connectWallet');
-  if (connectBtn) connectBtn.addEventListener('click', connectWallet);
+  if (connectBtn) {
+    connectBtn.addEventListener('click', () => {
+      if (isConnected) {
+        window.location.reload();
+      } else {
+        connectWalletUI();
+      }
+    });
+  }
+});
+
+window.addEventListener('ui:walletConnected', (ev) => {
+  const address = ev.detail && ev.detail.address;
+  if (address) {
+    updateWalletStatus(address);
+  }
 });
 
 window.addEventListener('ui:refundAmountLoaded', (ev) => {
