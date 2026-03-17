@@ -162,15 +162,18 @@ function bind() {
 }
 
 function onCanvasMove(e) {
+  if (!els.canvas) return;
   const rect = els.canvas.getBoundingClientRect();
   const perPixel = rect.width / GRID_SIZE; // screen pixels per grid cell (accounts for zoom)
   const cellX = Math.floor((e.clientX - rect.left) / perPixel);
   const cellY = Math.floor((e.clientY - rect.top) / perPixel);
   lastCell = { x: cellX, y: cellY };
-  els.cellTooltip.style.display = 'block';
-  els.cellTooltip.textContent = `x: ${cellX} y: ${cellY}`;
-  els.cellTooltip.style.left = `${e.clientX - rect.left + 12}px`;
-  els.cellTooltip.style.top = `${e.clientY - rect.top + 12}px`;
+  if (els.cellTooltip) {
+    els.cellTooltip.style.display = 'block';
+    els.cellTooltip.textContent = `x: ${cellX} y: ${cellY}`;
+    els.cellTooltip.style.left = `${e.clientX - rect.left + 12}px`;
+    els.cellTooltip.style.top = `${e.clientY - rect.top + 12}px`;
+  }
 
   // emit hover event
   window.dispatchEvent(
@@ -271,43 +274,8 @@ function showBuyPopup(x, y, color) {
   btnConfirm.addEventListener('click', () => {
     const raw = (amountInput.value || '').trim();
     const cleaned = raw.replace(',', '.');
-    const amount = cleaned;
-    if (!amount) {
-      if (warningEl) {
-        warningEl.textContent = 'Veuillez entrer un montant en ETH ou annuler.';
-        warningEl.style.display = 'block';
-      }
-      return;
-    }
-
-    // compute current highest amount in ETH (if any)
-    let currentEth = 0;
-    try {
-      if (lastPixelInfo && lastPixelInfo.highestAmountLocked) {
-        const wei = Number(lastPixelInfo.highestAmountLocked || 0);
-        currentEth = wei / 10 ** 18;
-      }
-    } catch (e) {
-      currentEth = 0;
-    }
-
-    const entered = parseFloat(amount);
-    if (!Number.isFinite(entered) || entered <= 0) {
-      if (warningEl) {
-        warningEl.textContent = 'Montant invalide.';
-        warningEl.style.display = 'block';
-      }
-      return;
-    }
-
-    if (currentEth > 0 && entered <= currentEth) {
-      if (warningEl) {
-        warningEl.textContent = `Montant trop faible — il faut SURenchérir (actuel: ${currentEth} ETH).`;
-        warningEl.style.display = 'block';
-      }
-      return;
-    }
-
+    const amount = cleaned || null;
+    // Minimal client-side handling: send amount (if any) to main for validation/processing
     window.dispatchEvent(
       new CustomEvent('ui:buyPixel', { detail: { x, y, color, amount } })
     );
@@ -453,8 +421,8 @@ async function connectWallet() {
         method: 'eth_requestAccounts',
       });
       const addr = acc[0];
-      els.walletAddress.textContent = shorten(addr);
-      els.networkStatus.textContent = 'Connecté';
+      if (els.walletAddress) els.walletAddress.textContent = shorten(addr);
+      if (els.networkStatus) els.networkStatus.textContent = 'Connecté';
       showToast('Wallet connecté');
       window.dispatchEvent(
         new CustomEvent('ui:walletConnected', { detail: { address: addr } })
