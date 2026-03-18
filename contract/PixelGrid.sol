@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract PixelGrid {
+// Notice the @4.9.3 added to the paths below!
+import "@openzeppelin/contracts@4.9.3/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts@4.9.3/utils/Strings.sol";
+
+contract PixelGrid is ERC721 {
     uint256 public constant SIZE = 50;
 
     address public adminAccount = 0xda1eb582986d35966e879970a7eBd1172260f29E;
@@ -11,16 +15,24 @@ contract PixelGrid {
     mapping(address => uint256) public pendingRefunds;
     mapping(address => string) public pseudos;
 
+    // --- NFT Variables ---
+    uint256 private _nextTokenId;
+    mapping(uint256 => uint256) public snapshotBlocks; // Maps Token ID to the block it was minted
+
     struct Pixel {
         address topLocker;
         uint256 highestAmountLocked;
         string color;
     }
 
+    // Initialize the ERC721 collection
+    constructor() ERC721("PixelGrid Snapshots", "PIXSNAP") {}
+
     mapping(uint256 => Pixel) public grid;
 
     event PixelChanged(uint256 indexed id, address indexed author, string color, address indexed newOwner, uint256 newAmount);
     event PixelOwned(uint256 indexed id, address indexed owner, uint256 amount);
+    event SnapshotMinted(uint256 indexed tokenId, address indexed minter, uint256 blockNumber);
 
     uint256 public constant COMMISSION_PERCENTAGE = 5;
 
@@ -32,6 +44,7 @@ contract PixelGrid {
     error EmptyArray();
     error NothingToRefund();
     error TransferFailed();
+    error IncorrectMintPrice();
 
     // ==========================================
     // Internal Helpers
@@ -74,6 +87,16 @@ contract PixelGrid {
         emit PixelChanged(id, msg.sender, pixel.color, msg.sender, amount);
     }
 
+    function _setPixel(uint256 _x, uint256 _y, string memory _color) public {
+        uint256 id = _getIdAndVerify(_x, _y);
+        Pixel storage pixel = grid[id];
+        if (pixel.topLocker != msg.sender) revert NotOwner();
+        
+        pixel.color = _color;
+
+        emit PixelChanged(id, msg.sender, _color, pixel.topLocker, pixel.highestAmountLocked);
+    }
+
     // ==========================================
     // Public Functions
     // ==========================================
@@ -83,13 +106,17 @@ contract PixelGrid {
     }
 
     function setPixel(uint256 _x, uint256 _y, string memory _color) public {
-        uint256 id = _getIdAndVerify(_x, _y);
-        Pixel storage pixel = grid[id];
-        if (pixel.topLocker != msg.sender) revert NotOwner();
-        
-        pixel.color = _color;
+        _setPixel(_x, _y, _color);
+    }
 
-        emit PixelChanged(id, msg.sender, _color, pixel.topLocker, pixel.highestAmountLocked);
+    function setPixels(uint256[] calldata _xList, uint256[] calldata _yList, string[] calldata _colorList) public {
+        if (_xList.length != _yList.length || _xList.length != _colorList.length) revert ArrayLengthMismatch();
+        if (_xList.length == 0) revert EmptyArray();
+
+        uint256 numberOfPixels = _xList.length;
+        for (uint256 i = 0; i < numberOfPixels; i++) {
+            _setPixel(_xList[i], _yList[i], _colorList[i]);
+        }
     }
 
     function giveUpPixel(uint256 _x, uint256 _y) public {
@@ -178,5 +205,21 @@ contract PixelGrid {
         }
 
         return (topLockers, highestAmountsLocked, colors);
+    }
+
+    function mintGridSnapshot() public payable {
+        if (msg.value != 1 ether) revert IncorrectMintPrice();
+
+        uint256 tokenId = _nextTokenId++;
+        
+        // Record the exact block number to freeze the state in time for this NFT
+        snapshotBlocks[tokenId] = block.number;
+        
+        // Add the 1 ETH to the admin's revenue pool
+        pendingAdminRefunds += msg.value;
+
+        _safeMint(msg.sender, tokenId);
+
+        emit SnapshotMinted(tokenId, msg.sender, block.number);
     }
 }

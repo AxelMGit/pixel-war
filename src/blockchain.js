@@ -132,7 +132,7 @@ async function setPixels(contract, web3, { xList, yList, colorList }) {
   const account = accounts[0];
   const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
-  await contract.methods.setPixels(xList, yList, colorList[0]).send({
+  await contract.methods.setPixels(xList, yList, colorList).send({
     from: account,
     nonce,
   });
@@ -264,6 +264,36 @@ async function getPastEvents(contract) {
   return pastEvents;
 }
 
+async function getSnapshotMintsForAddress(contract, address) {
+  if (!address) return [];
+  const events = await contract.getPastEvents('SnapshotMinted', {
+    fromBlock: 0,
+    toBlock: 'latest',
+    filter: { minter: address },
+  });
+  return events || [];
+}
+
+async function getSnapshotBlock(contract, tokenId) {
+  return await contract.methods.snapshotBlocks(tokenId).call();
+}
+
+async function getGridAtBlock(contract, blockNumber) {
+  return await contract.methods.getGrid().call({}, blockNumber);
+}
+
+async function mintGridSnapshot(contract, web3) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.mintGridSnapshot().send({
+    from: account,
+    value: web3.utils.toWei('1', 'ether'),
+    nonce,
+  });
+}
+
 export {
   createBlockchainClient,
   loadGrid,
@@ -283,4 +313,8 @@ export {
   getPastEvents,
   claimAdminRefunds,
   getAdminRefunds,
+  mintGridSnapshot,
+  getSnapshotBlock,
+  getGridAtBlock,
+  getSnapshotMintsForAddress,
 };

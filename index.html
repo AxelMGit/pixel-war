@@ -22,6 +22,9 @@
           <span id="pseudoDisplay" class="pseudo-display">—</span>
           <button id="editPseudo" class="btn ghost">Modifier pseudo</button>
         </div>
+        <button id="mintSnapshotButton" class="btn primary">
+          Acheter NFT de la grille (1 ETH)
+        </button>
         <button id="claimRefundButton" class="btn ghost" style="display: none">
           Réclamer
         </button>
@@ -114,6 +117,12 @@
             <div id="recentColors" class="recent-colors"></div>
             <input id="hexInput" class="hex-input" placeholder="#7C3AED" />
           </div>
+        </div>
+
+        <div class="panel-section" id="snapshotPanel">
+          <h3>Vos NFTs</h3>
+          <div class="info-row" id="snapshotEmpty">Aucun NFT trouve.</div>
+          <ul id="snapshotList" class="tx-list" style="display: none"></ul>
         </div>
       </aside>
     </main>
