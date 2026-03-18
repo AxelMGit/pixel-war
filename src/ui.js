@@ -6,18 +6,24 @@ import {
 import { qs, shorten } from './ui/utils.js';
 import { removeDomModal } from './dom.js';
 
+const ADMIN_WALLET_ADDRESS = '0xda1eb582986d35966e879970a7eBd1172260f29E';
 let isConnected = false;
 
 function updateWalletStatus(address) {
   const wa = document.getElementById('walletAddress');
   const ns = document.getElementById('networkStatus');
   const connectBtn = qs('connectWallet');
+  const adminLink = document.getElementById('adminLink');
 
   if (wa) wa.textContent = shorten(address);
   if (ns) ns.textContent = 'Connecté';
   if (connectBtn) {
     connectBtn.textContent = 'Se déconnecter';
     isConnected = true;
+  }
+
+  if (adminLink && address.toLowerCase() === ADMIN_WALLET_ADDRESS.toLowerCase()) {
+    adminLink.style.display = 'block';
   }
 }
 
