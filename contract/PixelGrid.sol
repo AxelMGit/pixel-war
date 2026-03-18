@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-contract PixelGrid {
+// Notice the @4.9.3 added to the paths below!
+import "@openzeppelin/contracts@4.9.3/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts@4.9.3/utils/Strings.sol";
+
+contract PixelGrid is ERC721 {
     uint256 public constant SIZE = 50;
 
     address public adminAccount = 0xda1eb582986d35966e879970a7eBd1172260f29E;
@@ -11,16 +15,24 @@ contract PixelGrid {
     mapping(address => uint256) public pendingRefunds;
     mapping(address => string) public pseudos;
 
+    // --- NFT Variables ---
+    uint256 private _nextTokenId;
+    mapping(uint256 => uint256) public snapshotBlocks; // Maps Token ID to the block it was minted
+
     struct Pixel {
         address topLocker;
         uint256 highestAmountLocked;
         string color;
     }
 
+    // Initialize the ERC721 collection
+    constructor() ERC721("PixelGrid Snapshots", "PIXSNAP") {}
+
     mapping(uint256 => Pixel) public grid;
 
     event PixelChanged(uint256 indexed id, address indexed author, string color, address indexed newOwner, uint256 newAmount);
     event PixelOwned(uint256 indexed id, address indexed owner, uint256 amount);
+    event SnapshotMinted(uint256 indexed tokenId, address indexed minter, uint256 blockNumber);
 
     uint256 public constant COMMISSION_PERCENTAGE = 5;
 
@@ -32,6 +44,7 @@ contract PixelGrid {
     error EmptyArray();
     error NothingToRefund();
     error TransferFailed();
+    error IncorrectMintPrice();
 
     // ==========================================
     // Internal Helpers
@@ -178,5 +191,31 @@ contract PixelGrid {
         }
 
         return (topLockers, highestAmountsLocked, colors);
+    }
+
+    function mintGridSnapshot() public payable {
+        if (msg.value != 1 ether) revert IncorrectMintPrice();
+
+        uint256 tokenId = _nextTokenId++;
+        
+        // Record the exact block number to freeze the state in time for this NFT
+        snapshotBlocks[tokenId] = block.number;
+        
+        // Add the 1 ETH to the admin's revenue pool
+        pendingAdminRefunds += msg.value;
+
+        _safeMint(msg.sender, tokenId);
+
+        emit SnapshotMinted(tokenId, msg.sender, block.number);
+    }
+
+   // Tells marketplaces where to find the JSON metadata and image for the NFT
+    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
+        
+        // Change _requireOwned to _requireMinted for v4.9 compatibility
+        _requireMinted(tokenId); 
+        
+        // Point to your backend server which will render the SVG based on the snapshot block
+        return string(abi.encodePacked("https://your-api.com/api/metadata/", Strings.toString(tokenId)));
     }
 }

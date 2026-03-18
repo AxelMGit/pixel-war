@@ -30,11 +30,17 @@ function updateWalletStatus(address) {
 document.addEventListener('DOMContentLoaded', () => {
   controls.init();
   const connectBtn = qs('connectWallet');
+  const mintBtn = qs('mintSnapshotButton');
   if (connectBtn) {
     connectBtn.addEventListener('click', () => {
       if (isConnected) {
         window.location.reload();
       }
+    });
+  }
+  if (mintBtn) {
+    mintBtn.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('ui:mintGridSnapshot'));
     });
   }
 });

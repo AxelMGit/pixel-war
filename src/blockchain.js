@@ -264,6 +264,18 @@ async function getPastEvents(contract) {
   return pastEvents;
 }
 
+async function mintGridSnapshot(contract, web3) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.mintGridSnapshot().send({
+    from: account,
+    value: web3.utils.toWei('1', 'ether'),
+    nonce,
+  });
+}
+
 export {
   createBlockchainClient,
   loadGrid,
@@ -283,4 +295,5 @@ export {
   getPastEvents,
   claimAdminRefunds,
   getAdminRefunds,
+  mintGridSnapshot,
 };

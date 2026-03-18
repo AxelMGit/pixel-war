@@ -13,6 +13,7 @@ import {
   getPendingRefund,
   ownPixels,
   setPixels,
+  mintGridSnapshot,
 } from './blockchain.js';
 import {
   setStatus,
@@ -319,6 +320,17 @@ async function init() {
         setStatus('Pixels achetés avec succès !');
       } catch (error) {
         console.error('Erreur:', error);
+        setStatus(`Erreur: ${error.message}`);
+      }
+    });
+
+    window.addEventListener('ui:mintGridSnapshot', async () => {
+      setStatus('Mint du NFT de la grille en cours...');
+      try {
+        await mintGridSnapshot(contract, web3);
+        setStatus('NFT de la grille minté avec succès.');
+      } catch (error) {
+        console.error('Erreur mintGridSnapshot:', error);
         setStatus(`Erreur: ${error.message}`);
       }
     });
