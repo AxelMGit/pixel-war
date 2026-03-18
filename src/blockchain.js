@@ -203,14 +203,6 @@ async function getPendingRefund(contract, web3) {
   return web3.utils.fromWei(amountWei, 'ether');
 }
 
-async function getPastEvents(contract) {
-  const pastEvents = await contract.getPastEvents('PixelChanged', {
-    fromBlock: 0,
-    toBlock: 'latest',
-  });
-  return pastEvents;
-}
-
 export {
   createBlockchainClient,
   loadGrid,
@@ -224,5 +216,4 @@ export {
   getPendingRefund,
   getPseudoCached,
   setPseudo,
-  getPastEvents,
 };
