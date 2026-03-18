@@ -14,6 +14,7 @@
         <small>Blockchain pixel canvas</small>
       </div>
       <div class="header-actions">
+        <a href="/admin.html" id="adminLink" class="btn" style="display: none;">Admin</a>
         <div id="networkStatus" class="status">Connexion...</div>
         <button id="connectWallet" class="btn">Se connecter</button>
         <div id="walletAddress" class="wallet">--</div>
@@ -43,12 +44,20 @@
         </div>
 
         <div class="canvas-wrapper">
-          <canvas
-            id="pixelCanvas"
-            width="600"
-            height="600"
-            aria-label="Grille de pixels"
-          ></canvas>
+          <div class="canvas-stack">
+            <canvas
+              id="pixelCanvas"
+              width="600"
+              height="600"
+              aria-label="Grille de pixels"
+            ></canvas>
+            <canvas
+              id="selectionCanvas"
+              width="600"
+              height="600"
+              aria-hidden="true"
+            ></canvas>
+          </div>
           <div id="cellTooltip" class="cell-tooltip" aria-hidden="true">
             x: -- y: --
           </div>

@@ -127,6 +127,17 @@ async function sendPixel(contract, web3, { x, y, color }) {
   });
 }
 
+async function setPixels(contract, web3, { xList, yList, colorList }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.setPixels(xList, yList, colorList[0]).send({
+    from: account,
+    nonce,
+  });
+}
+
 async function getPixel(contract, x, y) {
   return await contract.methods.getPixel(x, y).call();
 }
@@ -171,12 +182,35 @@ async function ownPixel(contract, web3, { x, y, amount }) {
   });
 }
 
+async function ownPixels(contract, web3, { xList, yList, amount }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.ownPixels(xList, yList).send({
+    from: account,
+    value: web3.utils.toWei(amount, 'ether'),
+    nonce,
+  });
+}
+
 async function giveUpPixel(contract, web3, { x, y }) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
   const nonce = await web3.eth.getTransactionCount(account, 'pending');
 
   await contract.methods.giveUpPixel(x, y).send({
+    from: account,
+    nonce,
+  });
+}
+
+async function giveUpPixels(contract, web3, { xList, yList }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.giveUpPixels(xList, yList).send({
     from: account,
     nonce,
   });
@@ -203,6 +237,14 @@ async function getPendingRefund(contract, web3) {
   return web3.utils.fromWei(amountToRefund, 'ether');
 }
 
+async function getPastEvents(contract) {
+  const pastEvents = await contract.getPastEvents('PixelChanged', {
+    fromBlock: 0,
+    toBlock: 'latest',
+  });
+  return pastEvents;
+}
+
 export {
   createBlockchainClient,
   loadGrid,
@@ -212,8 +254,12 @@ export {
   getPixel,
   ownPixel,
   giveUpPixel,
+  giveUpPixels,
   claimRefund,
   getPendingRefund,
   getPseudoCached,
   setPseudo,
+  ownPixels,
+  setPixels,
+  getPastEvents,
 };

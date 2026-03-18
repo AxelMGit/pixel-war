@@ -40,6 +40,7 @@ export function showBuyPopup(
       <div class="modal-row">Choisir une couleur: <input type="color" id="modalColorInput" class="modal-input" value="${color}" style="width:60px;height:36px;padding:2px;border-radius:6px;border:none;" /></div>
       <div class="modal-actions">
         <button class="btn secondary" id="modalCancel">Annuler</button>
+        <button class="btn ghost" id="modalSell">Rendre</button>
         <button class="btn primary" id="modalConfirm">Appliquer</button>
       </div>
     `;
@@ -48,9 +49,16 @@ export function showBuyPopup(
 
     const colorInput = card.querySelector('#modalColorInput');
     const btnCancel = card.querySelector('#modalCancel');
+    const btnSell = card.querySelector('#modalSell');
     const btnConfirm = card.querySelector('#modalConfirm');
 
     btnCancel.addEventListener('click', () => removeDomModal(backdrop));
+    btnSell.addEventListener('click', () => {
+      window.dispatchEvent(
+        new CustomEvent('ui:returnRequest', { detail: { x, y } })
+      );
+      removeDomModal(backdrop);
+    });
     btnConfirm.addEventListener('click', () => {
       const newColor = colorInput.value || color;
       window.dispatchEvent(
@@ -129,6 +137,101 @@ export function showEditPseudoModal() {
   });
 }
 
+export function showBatchBuyPopup(pixelCount, minBid = 0) {
+  return new Promise((resolve) => {
+    const root = document.getElementById('modalRoot') || document.body;
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+
+    const card = document.createElement('div');
+    card.className = 'modal-card';
+    const hint = minBid > 0 ? `Surenchere minimale: ${minBid} ETH` : '';
+
+    card.innerHTML = `
+      <h3>Acheter ${pixelCount} pixels</h3>
+      <div class="modal-row">Montant (ETH) par pixel: <input class="modal-input" id="modalAmountInput" placeholder="0.1" /></div>
+      ${
+        hint
+          ? `<div class="modal-row"><div id="modalHint" class="modal-warning" style="display:block">${hint}</div></div>`
+          : ''
+      }
+      <div class="modal-row"><div id="modalWarning" class="modal-warning" style="display:none"></div></div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="modalCancel">Annuler</button>
+        <button class="btn primary" id="modalConfirm">Confirmer</button>
+      </div>
+    `;
+
+    backdrop.appendChild(card);
+    root.appendChild(backdrop);
+
+    const amountInput = card.querySelector('#modalAmountInput');
+    const warning = card.querySelector('#modalWarning');
+    const btnCancel = card.querySelector('#modalCancel');
+    const btnConfirm = card.querySelector('#modalConfirm');
+
+    const close = (value) => {
+      removeDomModal(backdrop);
+      resolve(value || null);
+    };
+
+    btnCancel.addEventListener('click', () => close(null));
+    btnConfirm.addEventListener('click', () => {
+      const raw = (amountInput.value || '').trim();
+      const cleaned = raw.replace(',', '.');
+      const entered = parseFloat(cleaned);
+      if (!Number.isFinite(entered) || entered <= 0) {
+        if (warning) {
+          warning.textContent = 'Montant invalide.';
+          warning.style.display = 'block';
+        }
+        return;
+      }
+      close(cleaned);
+    });
+  });
+}
+
+export function showOwnedBatchPopup(pixelCount, defaultColor = '#ffffff') {
+  return new Promise((resolve) => {
+    const root = document.getElementById('modalRoot') || document.body;
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+
+    const card = document.createElement('div');
+    card.className = 'modal-card';
+    card.innerHTML = `
+      <h3>${pixelCount} pixels selectionnes</h3>
+      <div class="modal-row">Choisir une couleur: <input type="color" id="modalColorInput" class="modal-input" value="${defaultColor}" style="width:60px;height:36px;padding:2px;border-radius:6px;border:none;" /></div>
+      <div class="modal-actions">
+        <button class="btn secondary" id="modalCancel">Annuler</button>
+        <button class="btn ghost" id="modalSell">Tout rendre</button>
+        <button class="btn primary" id="modalApply">Appliquer couleur</button>
+      </div>
+    `;
+
+    backdrop.appendChild(card);
+    root.appendChild(backdrop);
+
+    const colorInput = card.querySelector('#modalColorInput');
+    const btnCancel = card.querySelector('#modalCancel');
+    const btnSell = card.querySelector('#modalSell');
+    const btnApply = card.querySelector('#modalApply');
+
+    const close = (value) => {
+      removeDomModal(backdrop);
+      resolve(value || null);
+    };
+
+    btnCancel.addEventListener('click', () => close(null));
+    btnSell.addEventListener('click', () => close({ action: 'sell' }));
+    btnApply.addEventListener('click', () => {
+      const color = (colorInput && colorInput.value) || defaultColor;
+      close({ action: 'color', color });
+    });
+  });
+}
+
 export function showReturnPopup(x, y) {
   const root = document.getElementById('modalRoot') || document.body;
   const backdrop = document.createElement('div');
@@ -165,6 +268,8 @@ export function showReturnPopup(x, y) {
 export default {
   showToast,
   showBuyPopup,
+  showBatchBuyPopup,
+  showOwnedBatchPopup,
   showEditPseudoModal,
   showReturnPopup,
 };

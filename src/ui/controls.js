@@ -1,5 +1,6 @@
 import { GRID_SIZE } from '../config.js';
 import { getCanvasCoordinates } from '../dom.js';
+import { drawSelectionRectangle } from '../grid.js';
 import { syncColor } from './color.js';
 import { showBuyPopup, showToast } from './modals.js';
 import { qs } from './utils.js';
@@ -20,6 +21,7 @@ export function init() {
   els.zoomOut = qs('zoomOut');
   els.zoomLevel = qs('zoomLevel');
   els.canvas = qs('pixelCanvas');
+  els.selectionCanvas = qs('selectionCanvas');
   els.cellTooltip = qs('cellTooltip');
   els.recentColors = qs('recentColors');
   els.hexInput = qs('hexInput');
@@ -80,9 +82,62 @@ function bind() {
     });
 
   if (els.canvas) {
+    let isDragging = false;
+    let dragPixels = [];
+    let dragStart = null;
+    const selectionCtx =
+      els.selectionCanvas && els.selectionCanvas.getContext
+        ? els.selectionCanvas.getContext('2d')
+        : null;
+
+    if (els.selectionCanvas) {
+      els.selectionCanvas.width = els.canvas.width;
+      els.selectionCanvas.height = els.canvas.height;
+    }
+
+    
+
+    els.canvas.addEventListener('mousedown', (e) => {
+      if (e.button !== 0) return; // left click only
+      const { x: cellX, y: cellY } = getCanvasCoordinates(e);
+      if (cellX < 0) return;
+      isDragging = true;
+      dragStart = { x: cellX, y: cellY };
+      dragPixels = [{ x: cellX, y: cellY, color: currentColor }];
+
+      if (selectionCtx) {
+        selectionCtx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+        drawSelectionRectangle(cellX, cellY, 1, 1, selectionCtx);
+      }
+    });
+
     els.canvas.addEventListener('mousemove', (e) => {
       const { x: cellX, y: cellY } = getCanvasCoordinates(e);
       lastCell = { x: cellX, y: cellY };
+      
+      if (isDragging && cellX >= 0 && dragStart) {
+        if (selectionCtx) {
+          selectionCtx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+        }
+        
+        const minX = Math.min(dragStart.x, cellX);
+        const maxX = Math.max(dragStart.x, cellX);
+        const minY = Math.min(dragStart.y, cellY);
+        const maxY = Math.max(dragStart.y, cellY);
+        
+        const w = maxX - minX + 1;
+        const h = maxY - minY + 1;
+        
+        drawSelectionRectangle(minX, minY, w, h, selectionCtx);
+        
+        dragPixels = [];
+        for (let x = minX; x <= maxX; x++) {
+          for (let y = minY; y <= maxY; y++) {
+             dragPixels.push({ x, y, color: currentColor });
+          }
+        }
+      }
+
       if (els.cellTooltip) {
         els.cellTooltip.style.display = 'block';
         els.cellTooltip.textContent = `x: ${cellX} y: ${cellY}`;
@@ -97,17 +152,39 @@ function bind() {
     els.canvas.addEventListener('mouseleave', () => {
       if (els.cellTooltip) els.cellTooltip.style.display = 'none';
       lastCell = { x: -1, y: -1 };
+      isDragging = false;
+      if (selectionCtx) {
+        selectionCtx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+      }
     });
-    els.canvas.addEventListener('click', () => {
-      if (lastCell.x < 0) return;
-      showBuyPopup(
-        lastCell.x,
-        lastCell.y,
-        currentColor,
-        lastPixelInfo,
-        myAddress
-      );
+    els.canvas.addEventListener('mouseup', (e) => {
+      if (e.button !== 0) return;
+      isDragging = false;
+      if (selectionCtx) {
+        selectionCtx.clearRect(0, 0, els.canvas.width, els.canvas.height);
+      }
+      if (dragPixels.length === 0) return;
+      
+      if (dragPixels.length === 1) {
+        showBuyPopup(
+          dragPixels[0].x,
+          dragPixels[0].y,
+          currentColor,
+          lastPixelInfo,
+          myAddress
+        );
+      } else {
+        // Dispatch multiple
+        window.dispatchEvent(
+          new CustomEvent('ui:buyPixels', {
+            detail: { pixels: dragPixels }
+          })
+        );
+      }
+      dragPixels = [];
     });
+    
+    // remove original click event since mouseup covers it
     els.canvas.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       if (lastCell.x < 0) {
@@ -187,6 +264,8 @@ function renderRecentColors() {
 function updateZoom() {
   if (!els.canvas) return;
   els.canvas.style.transform = `scale(${zoom})`;
+  if (els.selectionCanvas)
+    els.selectionCanvas.style.transform = `scale(${zoom})`;
   if (els.zoomLevel) els.zoomLevel.textContent = `${Math.round(zoom * 100)}%`;
 
   const wrapper = document.querySelector('.canvas-wrapper');

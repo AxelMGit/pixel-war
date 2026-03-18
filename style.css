@@ -125,6 +125,10 @@ body {
   padding: 10px;
   background: transparent;
 }
+.canvas-stack {
+  position: relative;
+  display: inline-block;
+}
 canvas {
   background: #fff;
   border-radius: 6px;
@@ -133,6 +137,15 @@ canvas {
   cursor: crosshair;
   display: block;
   transform-origin: top left;
+}
+#selectionCanvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: transparent;
+  pointer-events: none;
+  border: 4px solid transparent;
+  cursor: default;
 }
 .cell-tooltip {
   position: absolute;
@@ -293,3 +306,41 @@ canvas {
   font-size: 13px;
   margin-top: 6px;
 }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: 0 6px 18px rgba(2, 6, 23, 0.6);
+  overflow: hidden;
+}
+
+.logs-table th, .logs-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--text);
+}
+
+.logs-table th {
+  background-color: rgba(255, 255, 255, 0.02);
+  font-weight: bold;
+  color: var(--muted);
+}
+
+.logs-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.logs-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
