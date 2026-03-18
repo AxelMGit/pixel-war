@@ -44,12 +44,20 @@
         </div>
 
         <div class="canvas-wrapper">
-          <canvas
-            id="pixelCanvas"
-            width="600"
-            height="600"
-            aria-label="Grille de pixels"
-          ></canvas>
+          <div class="canvas-stack">
+            <canvas
+              id="pixelCanvas"
+              width="600"
+              height="600"
+              aria-label="Grille de pixels"
+            ></canvas>
+            <canvas
+              id="selectionCanvas"
+              width="600"
+              height="600"
+              aria-hidden="true"
+            ></canvas>
+          </div>
           <div id="cellTooltip" class="cell-tooltip" aria-hidden="true">
             x: -- y: --
           </div>
