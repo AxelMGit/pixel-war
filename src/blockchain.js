@@ -10,27 +10,24 @@ let gridRefreshIntervalId = null;
 // Cache pour éviter d'appeler getPseudo trop souvent
 const pseudoCache = {};
 
-async function createBlockchainClient() {
-  let web3;
-  let connectionLabel;
+import { connectWallet } from './ui/wallet.js';
 
-  if (window.ethereum) {
-    web3 = new Web3(window.ethereum);
-    await window.ethereum.request({ method: 'eth_requestAccounts' });
-    connectionLabel = 'Connecté via MetaMask !';
-  } else {
-    console.warn(
-      'Wallet non détecté, tentative de connexion à Ganache (localhost).'
-    );
-    web3 = new Web3(GANACHE_RPC_URL);
-    connectionLabel = 'Connecté à Ganache !';
-  }
+async function createBlockchainClient() {
+  const { web3, account } = await connectWallet();
   const contract = new web3.eth.Contract(abi, abiContractAddress);
+
+  if (account) {
+    window.dispatchEvent(
+      new CustomEvent('ui:walletConnected', {
+        detail: { address: account },
+      })
+    );
+  }
 
   return {
     web3,
     contract,
-    connectionLabel,
+    connectionLabel: 'MetaMask',
   };
 }
 
@@ -61,13 +58,13 @@ function startGridPolling(refreshGrid) {
 
 function subscribeToPixelChanges(
   contract,
-  { onPixelChanged, onSubscriptionUnavailable }
+  { onPixelChanged, onPixelOwnerChanged, onSubscriptionUnavailable }
 ) {
   const subscribe = contract?.events?.PixelChanged;
 
   if (typeof subscribe !== 'function') {
     console.warn(
-      'Les abonnements aux événements ne sont pas disponibles avec le provider actuel.'
+      "Les abonnements aux événements ne sont pas disponibles avec le provider actuel."
     );
     onSubscriptionUnavailable();
     return false;
@@ -86,12 +83,26 @@ function subscribeToPixelChanges(
 
     subscription.on('data', (event) => {
       const { id, color, newOwner, newAmount } = event.returnValues;
-      onPixelChanged({
-        id: Number(id),
-        color,
-        owner: newOwner,
-        amount: newAmount,
-      });
+      if (newOwner === '0x0000000000000000000000000000000000000000') {
+        onPixelChanged({
+          id: Number(id),
+          color,
+        });
+      } else {
+        onPixelChanged({
+          id: Number(id),
+          color,
+          owner: newOwner,
+          amount: newAmount,
+        });
+        if (onPixelOwnerChanged) {
+          onPixelOwnerChanged({
+            id: Number(id),
+            owner: newOwner,
+            amount: newAmount,
+          });
+        }
+      }
     });
 
     subscription.on('error', (error) => {
@@ -184,6 +195,14 @@ async function claimRefund(contract, web3) {
   });
 }
 
+async function getPendingRefund(contract, web3) {
+  const accounts = await web3.eth.getAccounts();
+  if (accounts.length === 0) return '0';
+  const account = accounts[0];
+  const amountWei = await contract.methods.pendingRefunds(account).call();
+  return web3.utils.fromWei(amountWei, 'ether');
+}
+
 export {
   createBlockchainClient,
   loadGrid,
@@ -194,6 +213,7 @@ export {
   ownPixel,
   giveUpPixel,
   claimRefund,
+  getPendingRefund,
   getPseudoCached,
   setPseudo,
 };
