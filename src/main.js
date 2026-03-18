@@ -14,6 +14,9 @@ import {
   ownPixels,
   setPixels,
   mintGridSnapshot,
+  getSnapshotBlock,
+  getGridAtBlock,
+  getSnapshotMintsForAddress,
 } from './blockchain.js';
 import {
   setStatus,
@@ -26,6 +29,76 @@ import {
   drawSinglePixel,
   getPixelId,
 } from './grid.js';
+import { GRID_SIZE } from './config.js';
+
+function buildSnapshotSvg(colors) {
+  const size = GRID_SIZE;
+  const width = size;
+  const height = size;
+  let svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" shape-rendering="crispEdges">` +
+    `<rect width="100%" height="100%" fill="#000000" />`;
+
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const idx = x + y * size;
+      const color = colors[idx] && colors[idx].length ? colors[idx] : '#FFFFFF';
+      svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${color}" />`;
+    }
+  }
+
+  svg += '</svg>';
+  return svg;
+}
+
+function downloadTextFile(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function renderOwnedSnapshots(tokenIds) {
+  const list = document.getElementById('snapshotList');
+  const empty = document.getElementById('snapshotEmpty');
+  if (!list || !empty) return;
+
+  if (!tokenIds.length) {
+    list.style.display = 'none';
+    list.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+
+  empty.style.display = 'none';
+  list.style.display = '';
+  list.innerHTML = tokenIds
+    .map(
+      (tokenId) => `
+        <li>
+          <div class="snapshot-row">
+            <span class="snapshot-meta">Token #${tokenId}</span>
+            <button class="btn ghost" data-token-id="${tokenId}">Render</button>
+          </div>
+        </li>
+      `
+    )
+    .join('');
+}
+
+async function loadOwnedSnapshots(contract, account) {
+  const events = await getSnapshotMintsForAddress(contract, account);
+  const tokenIds = events
+    .map((event) => event && event.returnValues && event.returnValues.tokenId)
+    .filter((tokenId) => tokenId !== undefined && tokenId !== null)
+    .map((tokenId) => String(tokenId));
+  renderOwnedSnapshots(tokenIds);
+}
 
 async function init() {
   try {
@@ -49,6 +122,12 @@ async function init() {
             detail: { amount: pendingRefund },
           })
         );
+
+        try {
+          await loadOwnedSnapshots(contract, account);
+        } catch (err) {
+          console.warn('Impossible de charger les NFTs:', err);
+        }
       }
 
       const claimBtn = document.getElementById('claimRefundButton');
@@ -329,8 +408,53 @@ async function init() {
       try {
         await mintGridSnapshot(contract, web3);
         setStatus('NFT de la grille minté avec succès.');
+        const accounts = await web3.eth.getAccounts();
+        if (accounts.length > 0) {
+          await loadOwnedSnapshots(contract, accounts[0]);
+        }
       } catch (error) {
         console.error('Erreur mintGridSnapshot:', error);
+        setStatus(`Erreur: ${error.message}`);
+      }
+    });
+
+    const snapshotList = document.getElementById('snapshotList');
+    if (snapshotList) {
+      snapshotList.addEventListener('click', (ev) => {
+        const target = ev.target;
+        if (!target || !target.matches) return;
+        if (!target.matches('button[data-token-id]')) return;
+        const tokenId = target.getAttribute('data-token-id');
+        if (!tokenId) return;
+        window.dispatchEvent(
+          new CustomEvent('ui:generateSnapshotImage', { detail: { tokenId } })
+        );
+      });
+    }
+
+    window.addEventListener('ui:generateSnapshotImage', async (ev) => {
+      const tokenId = ev.detail && ev.detail.tokenId ? ev.detail.tokenId : '';
+      if (!tokenId) return;
+      setStatus('Generation de l\'image NFT en cours...');
+      try {
+        const snapshotBlock = await getSnapshotBlock(contract, tokenId);
+        if (!snapshotBlock || Number(snapshotBlock) === 0) {
+          setStatus('Snapshot introuvable pour ce tokenId.');
+          return;
+        }
+
+        const gridAtBlock = await getGridAtBlock(contract, snapshotBlock);
+        const colors = gridAtBlock && gridAtBlock[2] ? gridAtBlock[2] : [];
+        if (!colors.length) {
+          setStatus('Impossible de recuperer la grille pour ce snapshot.');
+          return;
+        }
+
+        const svg = buildSnapshotSvg(colors);
+        downloadTextFile(`pixelgrid-snapshot-${tokenId}.svg`, svg, 'image/svg+xml');
+        setStatus('Image NFT generee et telechargee.');
+      } catch (error) {
+        console.error('Erreur generateSnapshotImage:', error);
         setStatus(`Erreur: ${error.message}`);
       }
     });

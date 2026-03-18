@@ -215,6 +215,15 @@ canvas {
   margin-bottom: 8px;
   font-size: 13px;
 }
+.tx-list .snapshot-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tx-list .snapshot-meta {
+  color: var(--muted);
+}
 .link {
   color: var(--muted);
   font-size: 13px;

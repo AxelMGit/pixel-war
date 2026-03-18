@@ -1,4 +1,4 @@
-export const contractAddress = '0x8b1A858090aa92937DA7748E65b62Da4491efB84';
+export const contractAddress = '0xC13181B7BA65486bd7Cea248DDE882e62A7F5a05';
 const abi = [
 	{
 		"inputs": [],
@@ -456,6 +456,29 @@ const abi = [
 			}
 		],
 		"name": "setPixel",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "_xList",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "_yList",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "string[]",
+				"name": "_colorList",
+				"type": "string[]"
+			}
+		],
+		"name": "setPixels",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
