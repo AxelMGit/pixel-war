@@ -136,7 +136,11 @@ contract PixelGrid {
         if (!success) revert TransferFailed();
     }
 
-    function claimRefundAdmin() public {
+    function getAdminRefunds() public view returns (uint256) {
+        return pendingAdminRefunds;
+    }
+
+    function claimAdminRefunds() public {
         if (msg.sender != adminAccount) revert Unauthorized();
         uint256 amountToClaim = pendingAdminRefunds;
         if (amountToClaim == 0) revert NothingToRefund();
