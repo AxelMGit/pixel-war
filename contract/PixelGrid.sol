@@ -87,6 +87,16 @@ contract PixelGrid is ERC721 {
         emit PixelChanged(id, msg.sender, pixel.color, msg.sender, amount);
     }
 
+    function _setPixel(uint256 _x, uint256 _y, string memory _color) public {
+        uint256 id = _getIdAndVerify(_x, _y);
+        Pixel storage pixel = grid[id];
+        if (pixel.topLocker != msg.sender) revert NotOwner();
+        
+        pixel.color = _color;
+
+        emit PixelChanged(id, msg.sender, _color, pixel.topLocker, pixel.highestAmountLocked);
+    }
+
     // ==========================================
     // Public Functions
     // ==========================================
@@ -96,13 +106,17 @@ contract PixelGrid is ERC721 {
     }
 
     function setPixel(uint256 _x, uint256 _y, string memory _color) public {
-        uint256 id = _getIdAndVerify(_x, _y);
-        Pixel storage pixel = grid[id];
-        if (pixel.topLocker != msg.sender) revert NotOwner();
-        
-        pixel.color = _color;
+        _setPixel(_x, _y, _color);
+    }
 
-        emit PixelChanged(id, msg.sender, _color, pixel.topLocker, pixel.highestAmountLocked);
+    function setPixels(uint256[] calldata _xList, uint256[] calldata _yList, string[] calldata _colorList) public {
+        if (_xList.length != _yList.length || _xList.length != _colorList.length) revert ArrayLengthMismatch();
+        if (_xList.length == 0) revert EmptyArray();
+
+        uint256 numberOfPixels = _xList.length;
+        for (uint256 i = 0; i < numberOfPixels; i++) {
+            _setPixel(_xList[i], _yList[i], _colorList[i]);
+        }
     }
 
     function giveUpPixel(uint256 _x, uint256 _y) public {
@@ -207,15 +221,5 @@ contract PixelGrid is ERC721 {
         _safeMint(msg.sender, tokenId);
 
         emit SnapshotMinted(tokenId, msg.sender, block.number);
-    }
-
-   // Tells marketplaces where to find the JSON metadata and image for the NFT
-    function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        
-        // Change _requireOwned to _requireMinted for v4.9 compatibility
-        _requireMinted(tokenId); 
-        
-        // Point to your backend server which will render the SVG based on the snapshot block
-        return string(abi.encodePacked("https://your-api.com/api/metadata/", Strings.toString(tokenId)));
     }
 }
