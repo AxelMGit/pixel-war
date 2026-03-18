@@ -35,10 +35,11 @@ function drawGrid(pixels) {
   });
 }
 
-function drawSelectionRectangle(x, y, width, height) {
-  ctx.strokeStyle = 'rgba(0, 0, 255, 0.5)';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(
+function drawSelectionRectangle(x, y, width, height, targetCtx = ctx) {
+  if (!targetCtx) return;
+  targetCtx.strokeStyle = 'rgba(0, 0, 255, 0.5)';
+  targetCtx.lineWidth = 2;
+  targetCtx.strokeRect(
     x * pixelSize,
     y * pixelSize,
     width * pixelSize,
@@ -50,4 +51,4 @@ function getPixelId(x, y) {
   return x + y * GRID_SIZE;
 }
 
-export { drawGrid, drawSinglePixel, getPixelId };
+export { drawGrid, drawSinglePixel, getPixelId, drawSelectionRectangle };

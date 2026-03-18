@@ -5,27 +5,25 @@ import {
   startGridPolling,
   subscribeToPixelChanges,
   getPixel,
-  ownPixel,
   giveUpPixel,
+  giveUpPixels,
   getPseudoCached,
   setPseudo,
   claimRefund,
   getPendingRefund,
   ownPixels,
+  setPixels,
 } from './blockchain.js';
 import {
-  canvas,
-  getCanvasCoordinates,
-  getSelectedColor,
   setStatus,
   showOwnPixelModal,
   showBidPixelModal,
 } from './dom.js';
+import { showBatchBuyPopup, showOwnedBatchPopup } from './ui/modals.js';
 import {
   drawGrid,
   drawSinglePixel,
   getPixelId,
-  drawSelectionRectangle,
 } from './grid.js';
 
 async function init() {
@@ -171,7 +169,7 @@ async function init() {
           setStatus(
             'Transaction en cours. Veuillez confirmer dans votre wallet...'
           );
-          await ownPixel(contract, web3, { x, y, amount: chosenAmount });
+          await ownPixels(contract, web3, { xList:[x], yList:[y], amount: chosenAmount });
           setStatus('Transaction validée ! Vous possédez maintenant ce pixel.');
         } else if (pixel.topLocker.toLowerCase() === account.toLowerCase()) {
           setStatus(
@@ -189,7 +187,7 @@ async function init() {
           setStatus(
             'Transaction en cours. Veuillez confirmer dans votre wallet...'
           );
-          await ownPixel(contract, web3, { x, y, amount: chosenAmount });
+          await ownPixels(contract, web3, { xList:[x], yList:[y], amount: chosenAmount });
           setStatus('Surenchère validée !');
         }
       } catch (error) {
@@ -198,7 +196,136 @@ async function init() {
       }
     });
 
-    window.addEventListener('ui:returnRequest', async (ev) => {
+    window.addEventListener('ui:buyPixels', async (ev) => {
+      const { pixels, amount } = ev.detail || {};
+      if (!pixels || !pixels.length) return;
+      setStatus('Vérification des pixels sélectionnés...');
+      try {
+        const accounts = await web3.eth.getAccounts();
+        const account = accounts[0];
+
+        const xList = [];
+        const yList = [];
+        const colors = [];
+        let maxBid = 0;
+        let allOwnedByMe = true;
+
+        for (const p of pixels) {
+          const pData = await getPixel(contract, p.x, p.y);
+
+          const isOwnedByMe =
+            pData.topLocker &&
+            pData.topLocker.toLowerCase() === account.toLowerCase();
+          if (!isOwnedByMe) {
+            allOwnedByMe = false;
+          }
+
+          if (
+            pData.topLocker &&
+            pData.topLocker !==
+              '0x0000000000000000000000000000000000000000'
+          ) {
+            const currentBidStr = web3.utils.fromWei(
+              pData.highestAmountLocked,
+              'ether'
+            );
+            const currentBid =
+              parseFloat(String(currentBidStr).replace(',', '.')) || 0;
+            if (currentBid > maxBid) maxBid = currentBid;
+          }
+          xList.push(p.x);
+          yList.push(p.y);
+          colors.push(p.color);
+        }
+
+        if (allOwnedByMe) {
+          const action = await showOwnedBatchPopup(xList.length, colors[0]);
+          if (!action) {
+            setStatus('Action annulée.');
+            return;
+          }
+
+          if (action.action === 'sell') {
+            setStatus(
+              'Transaction en cours. Veuillez confirmer dans votre wallet...'
+            );
+            await giveUpPixels(contract, web3, { xList, yList });
+            setStatus('Pixels rendus avec succès.');
+            window.dispatchEvent(
+              new CustomEvent('ui:refundAmountLoaded', {
+                detail: { amount: await getPendingRefund(contract, web3) },
+              })
+            );
+            return;
+          }
+
+          const chosenColor = action.color || colors[0];
+          const colorList = xList.map(() => chosenColor);
+          setStatus(
+            'Transaction en cours. Veuillez confirmer dans votre wallet...'
+          );
+          await setPixels(contract, web3, {
+            xList,
+            yList,
+            colorList,
+          });
+          xList.forEach((x, idx) => {
+            const y = yList[idx];
+            drawSinglePixel(getPixelId(x, y), chosenColor);
+          });
+          setStatus('Couleurs mises à jour pour les pixels sélectionnés.');
+          return;
+        }
+
+        if (amount) {
+          const cleaned = String(amount).replace(',', '.');
+          const entered = parseFloat(cleaned);
+          if (!Number.isFinite(entered) || entered <= 0) {
+            setStatus("Montant invalide fourni par l'UI.");
+            return;
+          }
+          if (entered <= maxBid) {
+            setStatus(
+              `Montant trop faible — il faut surenchérir (max actuel: ${maxBid} ETH).`
+            );
+            return;
+          }
+        }
+
+        const chosenAmount =
+          amount || (await showBatchBuyPopup(xList.length, maxBid));
+        if (!chosenAmount) {
+          setStatus('Transaction annulée.');
+          return;
+        }
+
+        const parsedAmount = parseFloat(String(chosenAmount).replace(',', '.'));
+        if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+          setStatus("Montant invalide fourni par l'UI.");
+          return;
+        }
+        if (parsedAmount <= maxBid) {
+          setStatus(
+            `Montant trop faible — il faut surenchérir (max actuel: ${maxBid} ETH).`
+          );
+          return;
+        }
+
+        const totalAmount = (parsedAmount * xList.length).toFixed(18);
+        setStatus('Transaction en cours. Veuillez confirmer dans votre wallet...');
+        await ownPixels(contract, web3, {
+          xList,
+          yList,
+          amount: totalAmount.toString(),
+        });
+        setStatus('Pixels achetés avec succès !');
+      } catch (error) {
+        console.error('Erreur:', error);
+        setStatus(`Erreur: ${error.message}`);
+      }
+    });
+
+  window.addEventListener('ui:returnRequest', async (ev) => {
       const { x, y } = ev.detail || {};
       try {
         const accounts = await web3.eth.getAccounts();
@@ -247,71 +374,6 @@ async function init() {
       }
     });
 
-    // on drag, get all pixels in the dragged area and call ownPixels with all coordinate
-    let isDragging = false;
-    let dragStart = null;
-
-    canvas.addEventListener('mousedown', (event) => {
-      isDragging = true;
-      dragStart = getCanvasCoordinates(event);
-    });
-
-    canvas.addEventListener('mousemove', (event) => {
-      if (!isDragging) return;
-      const { x, y } = getCanvasCoordinates(event);
-      const width = Math.abs(x - dragStart.x);
-      const height = Math.abs(y - dragStart.y);
-      const startX = Math.min(x, dragStart.x);
-      const startY = Math.min(y, dragStart.y);
-
-      // Redessiner la grille pour effacer les anciens rectangles de sélection
-      refreshGrid();
-      drawSelectionRectangle(startX, startY, width, height);
-    });
-
-    canvas.addEventListener('mouseup', async (event) => {
-      if (!isDragging) return;
-      isDragging = false;
-      const dragEnd = getCanvasCoordinates(event);
-
-      const xList = [];
-      const yList = [];
-      for (
-        let x = Math.min(dragStart.x, dragEnd.x);
-        x <= Math.max(dragStart.x, dragEnd.x);
-        x++
-      ) {
-        for (
-          let y = Math.min(dragStart.y, dragEnd.y);
-          y <= Math.max(dragStart.y, dragEnd.y);
-          y++
-        ) {
-          xList.push(x);
-          yList.push(y);
-        }
-      }
-
-      const color = getSelectedColor();
-      const amountPerPixel = await showBidPixelModal('0');
-
-      setStatus(
-        'Transaction en cours pour posséder les pixels sélectionnés. Veuillez confirmer dans votre wallet...'
-      );
-
-      try {
-        await ownPixels(contract, web3, {
-          xList,
-          yList,
-          amount: amountPerPixel,
-        });
-        setStatus(
-          'Transaction validée ! Vous possédez maintenant les pixels sélectionnés.'
-        );
-      } catch (error) {
-        console.error('Erreur:', error);
-        setStatus(`Erreur: ${error.message}`);
-      }
-    });
   } catch (error) {
     console.error("Erreur d'initialisation:", error);
     setStatus(`Erreur: ${error.message}`);
