@@ -1,4 +1,4 @@
-export const contractAddress = '0x7a4416a29C9d5D78f3109f0c883642bc6f938Ba1';
+export const contractAddress = '0x011b4554D38Fbb9ae38C6B9BaC82316bAe168BE0';
 const abi = [
 	{
 		"inputs": [],
@@ -7,8 +7,58 @@ const abi = [
 	},
 	{
 		"inputs": [],
+		"name": "claimAdminRefunds",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claimRefund",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
 		"name": "EmptyArray",
 		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_y",
+				"type": "uint256"
+			}
+		],
+		"name": "giveUpPixel",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "_xList",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "_yList",
+				"type": "uint256[]"
+			}
+		],
+		"name": "giveUpPixels",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
 	},
 	{
 		"inputs": [],
@@ -29,6 +79,42 @@ const abi = [
 		"inputs": [],
 		"name": "OutOfBounds",
 		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_x",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_y",
+				"type": "uint256"
+			}
+		],
+		"name": "ownPixel",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256[]",
+				"name": "_xList",
+				"type": "uint256[]"
+			},
+			{
+				"internalType": "uint256[]",
+				"name": "_yList",
+				"type": "uint256[]"
+			}
+		],
+		"name": "ownPixels",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
 	},
 	{
 		"inputs": [],
@@ -103,92 +189,6 @@ const abi = [
 		"type": "event"
 	},
 	{
-		"inputs": [],
-		"name": "claimRefund",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "claimRefundAdmin",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_x",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_y",
-				"type": "uint256"
-			}
-		],
-		"name": "giveUpPixel",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "_xList",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "_yList",
-				"type": "uint256[]"
-			}
-		],
-		"name": "giveUpPixels",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_x",
-				"type": "uint256"
-			},
-			{
-				"internalType": "uint256",
-				"name": "_y",
-				"type": "uint256"
-			}
-		],
-		"name": "ownPixel",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256[]",
-				"name": "_xList",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "_yList",
-				"type": "uint256[]"
-			}
-		],
-		"name": "ownPixels",
-		"outputs": [],
-		"stateMutability": "payable",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
 				"internalType": "uint256",
@@ -240,6 +240,19 @@ const abi = [
 	{
 		"inputs": [],
 		"name": "COMMISSION_PERCENTAGE",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "getAdminRefunds",
 		"outputs": [
 			{
 				"internalType": "uint256",

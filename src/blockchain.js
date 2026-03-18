@@ -227,6 +227,25 @@ async function claimRefund(contract, web3) {
   });
 }
 
+async function claimAdminRefunds(contract, web3) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.claimAdminRefunds().send({
+    from: account,
+    nonce,
+  });
+}
+
+async function getAdminRefunds(contract, web3){
+  const accounts = await web3.eth.getAccounts();
+  if (accounts.length === 0) return '0';
+  const account = accounts[0];
+  const amountWei = await contract.methods.getAdminRefunds().call({ from: account });
+  return web3.utils.fromWei(amountWei, 'ether');
+}
+
 async function getPendingRefund(contract, web3) {
   const accounts = await web3.eth.getAccounts();
   if (accounts.length === 0) return '0';
@@ -262,4 +281,6 @@ export {
   ownPixels,
   setPixels,
   getPastEvents,
+  claimAdminRefunds,
+  getAdminRefunds,
 };
