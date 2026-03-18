@@ -129,6 +129,17 @@ async function sendPixel(contract, web3, { x, y, color }) {
   });
 }
 
+async function setPixels(contract, web3, { xList, yList, colorList }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.setPixels(xList, yList, colorList[0]).send({
+    from: account,
+    nonce,
+  });
+}
+
 async function getPixel(contract, x, y) {
   return await contract.methods.getPixel(x, y).call();
 }
@@ -196,6 +207,17 @@ async function giveUpPixel(contract, web3, { x, y }) {
   });
 }
 
+async function giveUpPixels(contract, web3, { xList, yList }) {
+  const accounts = await web3.eth.getAccounts();
+  const account = accounts[0];
+  const nonce = await web3.eth.getTransactionCount(account, 'pending');
+
+  await contract.methods.giveUpPixels(xList, yList).send({
+    from: account,
+    nonce,
+  });
+}
+
 async function claimRefund(contract, web3) {
   const accounts = await web3.eth.getAccounts();
   const account = accounts[0];
@@ -224,9 +246,11 @@ export {
   getPixel,
   ownPixel,
   giveUpPixel,
+  giveUpPixels,
   claimRefund,
   getPendingRefund,
   getPseudoCached,
   setPseudo,
   ownPixels,
+  setPixels,
 };

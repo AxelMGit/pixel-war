@@ -52,6 +52,34 @@ contract PixelGrid {
         emit PixelChanged(id, msg.sender, pixel.color, address(0), 0);
     }
 
+    function giveUpPixels(uint256[] calldata _xList, uint256[] calldata _yList) public {
+        require(_xList.length == _yList.length, "Listes de tailles differentes");
+        require(_xList.length > 0, "Liste vide");
+
+        uint256 numberOfPixels = _xList.length;
+
+        for (uint256 i = 0; i < numberOfPixels; i++) {
+            uint256 _x = _xList[i];
+            uint256 _y = _yList[i];
+
+            require(_x < SIZE && _y < SIZE, "Hors limites");
+            
+            uint256 id = _x + (_y * SIZE);
+            Pixel storage pixel = grid[id];
+            require(pixel.topLocker == msg.sender, "Vous devez etre le proprietaire du pixel pour le liberer");
+
+            if (pixel.highestAmountLocked > 0) {
+                pendingRefunds[msg.sender] += pixel.highestAmountLocked;
+            }
+
+            pixel.topLocker = address(0);
+            pixel.highestAmountLocked = 0;
+            pixel.color = "#FFFFFF"; 
+
+            emit PixelChanged(id, msg.sender, pixel.color, address(0), 0);
+        }
+    }
+
     function ownPixel(uint256 _x, uint256 _y) public payable {
         require(_x < SIZE && _y < SIZE, "Hors limites");
         uint256 id = _x + (_y * SIZE);
