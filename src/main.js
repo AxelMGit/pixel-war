@@ -78,8 +78,6 @@ async function init() {
       if (typeof newPseudo !== 'string') return;
       try {
         setStatus('Enregistrement du pseudo...');
-        const accounts = await web3.eth.getAccounts();
-        const account = accounts[0];
         await setPseudo(contract, web3, newPseudo);
         window.dispatchEvent(
           new CustomEvent('ui:pseudoSaved', { detail: { pseudo: newPseudo } })

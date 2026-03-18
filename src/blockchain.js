@@ -1,10 +1,8 @@
 // eslint-disable-next-line node/no-missing-import
-import Web3 from 'https://cdn.jsdelivr.net/npm/web3@4.16.0/+esm';
-
 import abi, {
   contractAddress as abiContractAddress,
 } from './ressources/contract.js';
-import { GANACHE_RPC_URL, GRID_REFRESH_INTERVAL_MS } from './config.js';
+import { GRID_REFRESH_INTERVAL_MS } from './config.js';
 
 let gridRefreshIntervalId = null;
 // Cache pour éviter d'appeler getPseudo trop souvent
@@ -234,7 +232,9 @@ async function getPendingRefund(contract, web3) {
   if (accounts.length === 0) return '0';
   const account = accounts[0];
   const amountWei = await contract.methods.pendingRefunds(account).call();
-  return web3.utils.fromWei(amountWei, 'ether');
+  const amountWeiFloat = parseFloat(amountWei);
+  const amountToRefund = Math.floor(amountWeiFloat * 0.95);
+  return web3.utils.fromWei(amountToRefund, 'ether');
 }
 
 async function getPastEvents(contract) {
