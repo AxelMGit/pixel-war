@@ -1,16 +1,56 @@
-export const contractAddress = '0x07f47a8be5B309D6Ee8a78b144046787faB61BdE';
+export const contractAddress = '0x7a4416a29C9d5D78f3109f0c883642bc6f938Ba1';
 const abi = [
+	{
+		"inputs": [],
+		"name": "ArrayLengthMismatch",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "EmptyArray",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "InsufficientAmount",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "NotOwner",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "NothingToRefund",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "OutOfBounds",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "TransferFailed",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "Unauthorized",
+		"type": "error"
+	},
 	{
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": true,
 				"internalType": "uint256",
 				"name": "id",
 				"type": "uint256"
 			},
 			{
-				"indexed": false,
+				"indexed": true,
 				"internalType": "address",
 				"name": "author",
 				"type": "address"
@@ -22,7 +62,7 @@ const abi = [
 				"type": "string"
 			},
 			{
-				"indexed": false,
+				"indexed": true,
 				"internalType": "address",
 				"name": "newOwner",
 				"type": "address"
@@ -41,13 +81,13 @@ const abi = [
 		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": false,
+				"indexed": true,
 				"internalType": "uint256",
 				"name": "id",
 				"type": "uint256"
 			},
 			{
-				"indexed": false,
+				"indexed": true,
 				"internalType": "address",
 				"name": "owner",
 				"type": "address"
@@ -65,6 +105,13 @@ const abi = [
 	{
 		"inputs": [],
 		"name": "claimRefund",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claimRefundAdmin",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -167,29 +214,6 @@ const abi = [
 	{
 		"inputs": [
 			{
-				"internalType": "uint256[]",
-				"name": "_x",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "uint256[]",
-				"name": "_y",
-				"type": "uint256[]"
-			},
-			{
-				"internalType": "string",
-				"name": "_color",
-				"type": "string"
-			}
-		],
-		"name": "setPixels",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
 				"internalType": "string",
 				"name": "_pseudo",
 				"type": "string"
@@ -198,6 +222,32 @@ const abi = [
 		"name": "setPseudo",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "adminAccount",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "COMMISSION_PERCENTAGE",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -337,6 +387,19 @@ const abi = [
 				"internalType": "string",
 				"name": "color",
 				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "pendingAdminRefunds",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
