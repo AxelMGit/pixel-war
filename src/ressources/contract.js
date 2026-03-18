@@ -1,4 +1,4 @@
-export const contractAddress = '0x7c7010C45F0209C1dDD7E72185cD7c3B9b120fAB';
+export const contractAddress = '0x7a4416a29C9d5D78f3109f0c883642bc6f938Ba1';
 const abi = [
 	{
 		"inputs": [],
@@ -33,6 +33,11 @@ const abi = [
 	{
 		"inputs": [],
 		"name": "TransferFailed",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "Unauthorized",
 		"type": "error"
 	},
 	{
@@ -100,6 +105,13 @@ const abi = [
 	{
 		"inputs": [],
 		"name": "claimRefund",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "claimRefundAdmin",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
@@ -210,6 +222,32 @@ const abi = [
 		"name": "setPseudo",
 		"outputs": [],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "adminAccount",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "COMMISSION_PERCENTAGE",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
@@ -349,6 +387,19 @@ const abi = [
 				"internalType": "string",
 				"name": "color",
 				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "pendingAdminRefunds",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
