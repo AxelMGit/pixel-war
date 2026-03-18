@@ -10,6 +10,7 @@ import {
   getPseudoCached,
   setPseudo,
   claimRefund,
+  getPendingRefund,
 } from './blockchain.js';
 import {
   canvas,
@@ -26,30 +27,23 @@ async function init() {
     const { web3, contract, connectionLabel } = await createBlockchainClient();
     setStatus(connectionLabel);
 
-    // Initialiser le pseudo de l'utilisateur et le contrôle UI
     try {
       const accounts = await web3.eth.getAccounts();
       const account = accounts[0];
-      const pseudoInput = document.getElementById('pseudoInput');
-      const saveBtn = document.getElementById('savePseudoButton');
-
-      if (account && pseudoInput) {
+      if (account) {
         const myPseudo = await getPseudoCached(contract, account);
-        pseudoInput.value = myPseudo || '';
-      }
+        window.dispatchEvent(
+          new CustomEvent('ui:pseudoLoaded', {
+            detail: { pseudo: myPseudo || '' },
+          })
+        );
 
-      if (saveBtn && pseudoInput) {
-        saveBtn.addEventListener('click', async () => {
-          const newPseudo = pseudoInput.value || '';
-          setStatus('Enregistrement du pseudo...');
-          try {
-            await setPseudo(contract, web3, newPseudo);
-            setStatus('Pseudo enregistré.');
-          } catch (err) {
-            console.error('Erreur setPseudo:', err);
-            setStatus("Erreur lors de l'enregistrement du pseudo.");
-          }
-        });
+        const pendingRefund = await getPendingRefund(contract, web3);
+        window.dispatchEvent(
+          new CustomEvent('ui:refundAmountLoaded', {
+            detail: { amount: pendingRefund },
+          })
+        );
       }
 
       const claimBtn = document.getElementById('claimRefundButton');
@@ -59,6 +53,12 @@ async function init() {
           try {
             await claimRefund(contract, web3);
             setStatus('Remboursement réclamé avec succès.');
+            const pendingRefund = await getPendingRefund(contract, web3);
+            window.dispatchEvent(
+              new CustomEvent('ui:refundAmountLoaded', {
+                detail: { amount: pendingRefund },
+              })
+            );
           } catch (err) {
             console.error('Erreur claimRefund:', err);
             setStatus('Erreur lors de la réclamation du remboursement.');
@@ -68,6 +68,24 @@ async function init() {
     } catch (err) {
       console.warn("Impossible d'initialiser le pseudo:", err);
     }
+
+    window.addEventListener('ui:setPseudo', async (ev) => {
+      const newPseudo = ev.detail && ev.detail.pseudo;
+      if (typeof newPseudo !== 'string') return;
+      try {
+        setStatus('Enregistrement du pseudo...');
+        const accounts = await web3.eth.getAccounts();
+        const account = accounts[0];
+        await setPseudo(contract, web3, newPseudo);
+        window.dispatchEvent(
+          new CustomEvent('ui:pseudoSaved', { detail: { pseudo: newPseudo } })
+        );
+        setStatus('Pseudo enregistré.');
+      } catch (err) {
+        console.error('Erreur setPseudo:', err);
+        setStatus("Erreur lors de l'enregistrement du pseudo.");
+      }
+    });
 
     const refreshGrid = async () => {
       try {
@@ -88,28 +106,66 @@ async function init() {
         drawSinglePixel(id, color);
         setStatus('Pixel posé !');
       },
+      onPixelOwnerChanged: async () => {
+        try {
+          const accounts = await web3.eth.getAccounts();
+          if (accounts.length > 0) {
+            const pendingRefund = await getPendingRefund(contract, web3);
+            window.dispatchEvent(
+              new CustomEvent('ui:refundAmountLoaded', {
+                detail: { amount: pendingRefund },
+              })
+            );
+          }
+        } catch (err) {
+          console.warn('Could not refresh pending refund amount', err);
+        }
+      },
       onSubscriptionUnavailable: () => {
         startGridPolling(refreshGrid);
       },
     });
 
-    canvas.addEventListener('click', async (event) => {
-      const { x, y } = getCanvasCoordinates(event);
-      const color = getSelectedColor();
-
+    window.addEventListener('ui:buyPixel', async (ev) => {
+      const { x, y, color, amount } = ev.detail || {};
       setStatus('Vérification du propriétaire du pixel...');
-
       try {
         const accounts = await web3.eth.getAccounts();
         const account = accounts[0];
         const pixel = await getPixel(contract, x, y);
 
+        if (amount) {
+          const cleaned = String(amount).replace(',', '.');
+          const entered = parseFloat(cleaned);
+          if (!Number.isFinite(entered) || entered <= 0) {
+            setStatus("Montant invalide fourni par l'UI.");
+            return;
+          }
+          if (
+            pixel.topLocker &&
+            pixel.topLocker !== '0x0000000000000000000000000000000000000000'
+          ) {
+            const currentBidStr = web3.utils.fromWei(
+              pixel.highestAmountLocked,
+              'ether'
+            );
+            const currentBid =
+              parseFloat(String(currentBidStr).replace(',', '.')) || 0;
+            if (entered <= currentBid) {
+              setStatus(
+                `Montant trop faible — il faut surenchérir (actuel: ${currentBid} ETH).`
+              );
+              return;
+            }
+          }
+        }
+
         if (pixel.topLocker === '0x0000000000000000000000000000000000000000') {
-          const amount = await showOwnPixelModal();
+          const chosenAmount = amount || (await showOwnPixelModal());
           setStatus(
             'Transaction en cours. Veuillez confirmer dans votre wallet...'
           );
-          await ownPixel(contract, web3, { x, y, amount });
+          await ownPixel(contract, web3, { x, y, amount: chosenAmount });
           setStatus('Transaction validée ! Vous possédez maintenant ce pixel.');
         } else if (pixel.topLocker.toLowerCase() === account.toLowerCase()) {
           setStatus(
@@ -123,11 +179,11 @@ async function init() {
             pixel.highestAmountLocked,
             'ether'
           );
-          const amount = await showBidPixelModal(currentBid);
+          const chosenAmount = amount || (await showBidPixelModal(currentBid));
           setStatus(
             'Transaction en cours. Veuillez confirmer dans votre wallet...'
           );
-          await ownPixel(contract, web3, { x, y, amount });
+          await ownPixel(contract, web3, { x, y, amount: chosenAmount });
           setStatus('Surenchère validée !');
         }
       } catch (error) {
@@ -135,12 +191,31 @@ async function init() {
         setStatus(`Erreur: ${error.message}`);
       }
     });
-    canvas.addEventListener('contextmenu', async (event) => {
-      event.preventDefault(); // Empêcher le menu contextuel par défaut
-      const { x, y } = getCanvasCoordinates(event);
 
+    window.addEventListener('ui:returnRequest', async (ev) => {
+      const { x, y } = ev.detail || {};
+      try {
+        const accounts = await web3.eth.getAccounts();
+        const account = accounts[0];
+        const pixel = await getPixel(contract, x, y);
+        if (pixel.topLocker.toLowerCase() === account.toLowerCase()) {
+          window.dispatchEvent(
+            new CustomEvent('ui:confirmReturn', { detail: { x, y } })
+          );
+        } else {
+          window.dispatchEvent(
+            new CustomEvent('ui:notOwner', { detail: { x, y } })
+          );
+        }
+      } catch (error) {
+        console.error('Erreur:', error);
+        setStatus(`Erreur: ${error.message}`);
+      }
+    });
+
+    window.addEventListener('ui:returnPixel', async (ev) => {
+      const { x, y } = ev.detail || {};
       setStatus('Vérification du propriétaire du pixel...');
-
       try {
         const accounts = await web3.eth.getAccounts();
         const account = accounts[0];
@@ -152,6 +227,11 @@ async function init() {
           );
           await giveUpPixel(contract, web3, { x, y });
           setStatus('Transaction validée ! Vous avez vendu ce pixel.');
+          window.dispatchEvent(
+            new CustomEvent('ui:refundAmountLoaded', {
+              detail: { amount: await getPendingRefund(contract, web3) },
+            })
+          );
         } else {
           setStatus('Vous ne pouvez vendre que vos propres pixels.');
         }

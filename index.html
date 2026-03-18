@@ -2,59 +2,119 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Pixel War Blockchain</title>
     <link rel="stylesheet" href="style.css" />
   </head>
+
   <body>
-    <h1>Pixel War Blockchain</h1>
-    <div id="status">Connexion à Ganache...</div>
+    <header class="app-header">
+      <div class="brand">
+        <h1>Pixel War</h1>
+        <small>Blockchain pixel canvas</small>
+      </div>
+      <div class="header-actions">
+        <div id="networkStatus" class="status">Connexion...</div>
+        <button id="connectWallet" class="btn">Se connecter</button>
+        <div id="walletAddress" class="wallet">--</div>
+        <div class="pseudo-area">
+          <span id="pseudoDisplay" class="pseudo-display">—</span>
+          <button id="editPseudo" class="btn ghost">Modifier pseudo</button>
+        </div>
+        <button id="claimRefundButton" class="btn ghost" style="display: none">
+          Réclamer
+        </button>
+      </div>
+    </header>
 
-    <div class="controls">
-      <input type="color" id="colorPicker" value="#ff0000" />
-      <div class="pseudo-control">
-        <label for="pseudoInput">Votre pseudo :</label>
-        <input type="text" id="pseudoInput" placeholder="Entrez votre pseudo" />
-        <button id="savePseudoButton">Sauvegarder</button>
-      </div>
-      <div class="refund-control">
-        <button id="claimRefundButton">Réclamer le remboursement</button>
-      </div>
-      <p>Cliquez sur la grille pour poser un pixel !</p>
-    </div>
-    <div class="container">
-      <div class="rectangle">
-        <p>
-          <strong>Pixel : </strong> x : <span id="xValue">--</span> y :
-          <span id="yValue">--</span> Propriétaire :
-          <span id="topLockerValue">--</span> Montant :
-          <span id="highestAmountLockedValue">--</span> ETH
-        </p>
-      </div>
-      <canvas id="pixelCanvas" width="500" height="500"></canvas>
-    </div>
+    <main class="main-grid">
+      <section class="canvas-area">
+        <div class="canvas-topbar">
+          <div class="controls-inline">
+            <label for="colorPicker">Couleur</label>
+            <input type="color" id="colorPicker" value="#7C3AED" />
+            <button id="eraserBtn" class="btn ghost">Gomme</button>
+          </div>
+          <div class="zoom-controls">
+            <button id="zoomOut" class="icon">−</button>
+            <span id="zoomLevel">100%</span>
+            <button id="zoomIn" class="icon">+</button>
+          </div>
+        </div>
 
-    <div id="ownPixelModal" class="modal" style="display: none">
-      <div class="modal-content">
-        <span class="close-button">&times;</span>
-        <h2>Acheter ce pixel</h2>
-        <p>Entrez le montant en ETH que vous souhaitez mettre sur ce pixel :</p>
-        <input type="text" id="pixelAmount" placeholder="0.1" />
-        <button id="ownPixelButton">Acheter</button>
-      </div>
-    </div>
+        <div class="canvas-wrapper">
+          <canvas
+            id="pixelCanvas"
+            width="600"
+            height="600"
+            aria-label="Grille de pixels"
+          ></canvas>
+          <div id="cellTooltip" class="cell-tooltip" aria-hidden="true">
+            x: -- y: --
+          </div>
+        </div>
+      </section>
 
-    <div id="bidPixelModal" class="modal" style="display: none">
-      <div class="modal-content">
-        <span class="close-button">&times;</span>
-        <h2>Surenchérir sur ce pixel</h2>
-        <p>Montant actuel: <span id="currentBid"></span> ETH</p>
-        <p>Entrez un montant supérieur pour acheter ce pixel :</p>
-        <input type="text" id="bidAmount" placeholder="0.2" />
-        <button id="bidPixelButton">Surenchérir</button>
-      </div>
-    </div>
+      <aside class="side-panel">
+        <div class="panel-section" id="pixelInfoPanel">
+          <h3>Pixel (sous la souris)</h3>
+          <div class="info-row">
+            Coordonnées: <strong id="infoCoords">--, --</strong>
+          </div>
+          <div class="info-row">
+            Propriétaire: <strong id="infoOwner">N/A</strong>
+          </div>
+          <div class="info-row">
+            Montant: <strong id="infoAmount">N/A</strong>
+          </div>
+          <div class="info-row">
+            Statut: <strong id="infoStatus">--</strong>
+          </div>
+          <div
+            class="info-note"
+            style="margin-top: 8px; color: var(--muted); font-size: 13px"
+          >
+            <p><strong>Rappels :</strong></p>
+            <ul style="margin: 6px 0 0 18px; padding: 0">
+              <li>
+                Clic gauche: acheter une case libre, surenchérir ou modifier la
+                couleur.
+              </li>
+              <li>Clic droit: rendre la case et récupérer votre mise.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <h3>Palette</h3>
+          <div class="palette-large">
+            <input
+              type="color"
+              id="colorPickerLarge"
+              value="#7C3AED"
+              style="
+                width: 100%;
+                height: 44px;
+                border-radius: 6px;
+                border: none;
+                padding: 4px;
+              "
+            />
+          </div>
+          <div style="margin-top: 8px" id="recentColorsWrapper">
+            <div id="recentColors" class="recent-colors"></div>
+            <input id="hexInput" class="hex-input" placeholder="#7C3AED" />
+          </div>
+        </div>
+      </aside>
+    </main>
+
+    <div id="toast" class="toast" aria-live="polite" role="status"></div>
+
+    <div id="modalRoot"></div>
 
     <script type="module" src="app.js"></script>
     <script type="module" src="./src/focus.js"></script>
+    <script type="module" src="./src/ui.js"></script>
   </body>
 </html>
